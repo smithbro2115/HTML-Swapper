@@ -1,7 +1,8 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 import re
 import Rules
-import RuleWidget
+import AddRuleDialog
+from inspect import signature
 import RuleWidgetTwoValues
 import TagToReplaceWidget
 
@@ -18,6 +19,87 @@ html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article
              'span', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template',
              'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'var',
              'video', 'wbr']
+
+
+class RuleDialogSigs(QtCore.QObject):
+    result = QtCore.pyqtSignal(Rules.Rule)
+
+
+class RuleDialogLocal(QtWidgets.QDialog):
+    def __init__(self):
+        super(RuleDialogLocal, self).__init__()
+        self.ui = AddRuleDialog.Ui_Dialog()
+        self.ui.setupUi(self)
+        self.rule_names = get_rule_names()
+        self.rule = None
+        self.rule_type = None
+        self.setup_additional()
+        self.signals = RuleDialogSigs()
+        self.show()
+
+    def accept(self):
+        true_or_false = self.ui.trueOrFalseDropdown.currentText() == 'True'
+        try:
+            rule = self.rule_type(true_or_false, self.ui.valueLineEdit.text(), self.ui.keyLineEdit.text())
+            self.signals.result.emit(rule)
+        except TypeError:
+            pass
+        try:
+            rule = self.rule_type(true_or_false, self.ui.valueLineEdit.text())
+            self.signals.result.emit(rule)
+        except TypeError:
+            rule = self.rule_type(true_or_false)
+            self.signals.result.emit(rule)
+        super(RuleDialogLocal, self).accept()
+
+    def setup_additional(self):
+        retain_size = QtWidgets.QSizePolicy()
+        retain_size.setRetainSizeWhenHidden(True)
+        self.ui.keyFrame.setSizePolicy(retain_size)
+        self.ui.valueFrame.setSizePolicy(retain_size)
+        self.ui.ruleTypeDropdown.addItems(self.rule_names)
+        self.ui.ruleTypeDropdown.currentTextChanged.connect(self.on_rule_type_change)
+        self.on_rule_type_change(self.ui.ruleTypeDropdown.currentText())
+        self.ui.trueOrFalseDropdown.addItems(['True', "False"])
+        self.ui.keyLineEdit.textChanged.connect(self.on_line_edit_value_change)
+        self.ui.valueLineEdit.textChanged.connect(self.on_line_edit_value_change)
+
+    def on_rule_type_change(self, text):
+        rule_type_name = text[4:]
+        self.rule_type = Rules.get_rule_from_string(rule_type_name)
+        self.ui.valueFrame.setVisible(self.determine_if_value_should_be_shown(self.rule_type))
+        self.ui.keyFrame.setVisible(self.determine_if_key_should_be_shown(self.rule_type))
+        self.on_line_edit_value_change()
+
+    @staticmethod
+    def is_line_edit_filled(line_edit):
+        if line_edit.parent().isHidden() or line_edit.text() != '':
+            return True
+        else:
+            return False
+
+    def on_line_edit_value_change(self):
+        self.ui.buttons.buttons()[0].setEnabled(self.is_line_edit_filled(self.ui.valueLineEdit)
+                                                and self.is_line_edit_filled(self.ui.keyLineEdit))
+
+    @staticmethod
+    def determine_if_value_should_be_shown(rule_type):
+        rule_type_sig = signature(rule_type)
+        if len(rule_type_sig.parameters) > 1:
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def determine_if_key_should_be_shown(rule_type):
+        rule_type_sig = signature(rule_type)
+        if len(rule_type_sig.parameters) > 2:
+            return True
+        else:
+            return False
+
+    def get_current_rule_type(self):
+        return Rules.get_rule_from_string(self.ui.ruleTypeDropdown.currentData().toString())
 
 
 class RuleWidgetLocal(QtWidgets.QWidget):
@@ -51,5 +133,6 @@ class RuleWidgetLocal(QtWidgets.QWidget):
 def get_rule_names():
     rule_names = []
     for rule in Rules.Rule.__subclasses__():
-        rule_names.append(re.sub(r"(\w)([A-Z])", r"\1 \2", rule.__class__.__name__))
+        name = 'Tag ' + re.sub(r"(\w)([A-Z])", r"\1 \2", rule.__name__)
+        rule_names.append(name)
     return rule_names

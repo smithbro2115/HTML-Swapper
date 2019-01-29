@@ -30,8 +30,11 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
                               'video', 'wbr']
         self.tag_to_replace_complete_model = QtCore.QStringListModel()
         self.tag_to_replace_completer = QtWidgets.QCompleter()
+        self.window = None
+        self.add_rule_dialog = None
 
-    def setup_ui_additional(self):
+    def setup_ui_additional(self, window):
+        self.window = window
         self.edited.setReadOnly(True)
         self.original.textChanged.connect(self.original_text_changed)
         self.original.verticalScrollBar().valueChanged.connect(lambda x: self.text_slider_change(x, self.edited))
@@ -48,9 +51,9 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.addRuleButton.clicked.connect(self.add_rule)
 
     def add_rule(self):
-        rule_widget = CustomWidgets.RuleWidgetLocal(self.rulesLayout.layout())
-        self.rulesLayout.layout().addWidget(rule_widget)
-        rule_widget.show()
+        self.add_rule_dialog = CustomWidgets.RuleDialogLocal()
+        self.add_rule_dialog.signals.result.connect(print)
+        self.add_rule_dialog.show()
 
     def text_slider_change(self, event, scroll_to_track):
         scroll_to_track.verticalScrollBar().setValue(event)
@@ -114,7 +117,7 @@ class MainWindow(QtWidgets.QMainWindow):
         try:
             self.restoreGeometry(self.settings.value('geometry'))
             self.restoreState(self.settings.value('windowState', ''))
-        except AttributeError:
+        except TypeError:
             print('fail')
 
     def closeEvent(self, event):
@@ -129,6 +132,6 @@ if __name__ == "__main__":
     ui = Gui()
     MainWindow = MainWindow()
     ui.setupUi(MainWindow)
-    ui.setup_ui_additional()
+    ui.setup_ui_additional(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())

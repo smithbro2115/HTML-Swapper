@@ -62,3 +62,10 @@ class ContainsTag(Rule):
 
     def is_tag(self, tag):
         return tag.name == self.condition
+
+
+def get_rule_from_string(rule_string):
+    rule_name = rule_string.replace(' ', '')
+    for rule_class in Rule.__subclasses__():
+        if rule_class.__name__ == rule_name:
+            return rule_class
