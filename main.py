@@ -4,7 +4,6 @@ import converter
 import pyperclip
 import TextColor
 import CustomWidgets
-import RuleWidget
 
 
 class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
@@ -48,12 +47,37 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         # self.tagToReplaceLineEdit.setCompleter(self.tag_to_replace_completer)
         self.tag_to_replace_completer.setModel(self.tag_to_replace_complete_model)
         self.tag_to_replace_complete_model.setStringList(self.all_html_tags)
-        self.addRuleButton.clicked.connect(self.add_rule)
+        self.addRuleButton.clicked.connect(self.add_rule_button_clicked)
+        self.removeRuleButton.clicked.connect(self.remove_rule_button_clicked)
+        self.editRuleButton.clicked.connect(self.edit_rule_button_clicked)
 
-    def add_rule(self):
+    def add_rule_button_clicked(self):
         self.add_rule_dialog = CustomWidgets.RuleDialogLocal()
-        self.add_rule_dialog.signals.result.connect(print)
+        self.add_rule_dialog.disconnect()
+        self.add_rule_dialog.signals.result.connect(self.append_rule)
         self.add_rule_dialog.show()
+
+    def append_rule(self, rule_dict):
+        list_item = CustomWidgets.RuleResult(rule_dict['rule'].readable_string)
+        list_item.rule = rule_dict['rule']
+        list_item.rule_dialog = rule_dict['dialog']
+        self.rulesList.addItem(list_item)
+
+    def remove_rule_button_clicked(self):
+        for item in self.rulesList.selectedItems():
+            self.rulesList.takeItem(self.rulesList.row(item))
+
+    def edit_rule_button_clicked(self):
+        if len(self.rulesList.selectedItems()) == 1:
+            item = self.rulesList.selectedItems()[0]
+            self.add_rule_dialog = self.rulesList.item(self.rulesList.row(item)).rule_dialog
+            self.add_rule_dialog.disconnect()
+            self.add_rule_dialog.signals.result.connect(self.edit_rule)
+            self.add_rule_dialog.show()
+
+    def edit_rule(self, rule_dict):
+        self.remove_rule_button_clicked()
+        self.append_rule(rule_dict)
 
     def text_slider_change(self, event, scroll_to_track):
         scroll_to_track.verticalScrollBar().setValue(event)

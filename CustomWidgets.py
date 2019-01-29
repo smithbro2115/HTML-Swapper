@@ -22,7 +22,7 @@ html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article
 
 
 class RuleDialogSigs(QtCore.QObject):
-    result = QtCore.pyqtSignal(Rules.Rule)
+    result = QtCore.pyqtSignal(dict)
 
 
 class RuleDialogLocal(QtWidgets.QDialog):
@@ -40,16 +40,16 @@ class RuleDialogLocal(QtWidgets.QDialog):
     def accept(self):
         true_or_false = self.ui.trueOrFalseDropdown.currentText() == 'True'
         try:
-            rule = self.rule_type(true_or_false, self.ui.valueLineEdit.text(), self.ui.keyLineEdit.text())
-            self.signals.result.emit(rule)
+            rule = self.rule_type(true_or_false, self.ui.keyLineEdit.text(), self.ui.valueLineEdit.text())
+            self.signals.result.emit({'rule': rule, 'dialog': self})
         except TypeError:
-            pass
-        try:
-            rule = self.rule_type(true_or_false, self.ui.valueLineEdit.text())
-            self.signals.result.emit(rule)
-        except TypeError:
-            rule = self.rule_type(true_or_false)
-            self.signals.result.emit(rule)
+            try:
+                rule = self.rule_type(true_or_false, self.ui.valueLineEdit.text())
+                self.signals.result.emit({'rule': rule, 'dialog': self})
+            except TypeError:
+                rule = self.rule_type(true_or_false)
+                self.signals.result.emit({'rule': rule, 'dialog': self})
+
         super(RuleDialogLocal, self).accept()
 
     def setup_additional(self):
@@ -128,6 +128,13 @@ class RuleWidgetLocal(QtWidgets.QWidget):
 
     def sizeHint(self):
         return QtCore.QSize(350, 24)
+
+
+class RuleResult(QtWidgets.QListWidgetItem):
+    def __init__(self, value=''):
+        super(RuleResult, self).__init__(value)
+        self.rule = None
+        self.rule_dialog = None
 
 
 def get_rule_names():
