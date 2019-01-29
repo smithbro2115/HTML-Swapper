@@ -6,45 +6,18 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>697</width>
-    <height>588</height>
+    <width>923</width>
+    <height>549</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Html Tag Replacer</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="3,0,2">
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="1">
-       <widget class="QTextEdit" name="edited"/>
-      </item>
-      <item row="1" column="1">
-       <widget class="QPushButton" name="copyButton">
-        <property name="text">
-         <string>Copy</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="0">
-       <widget class="QTextEdit" name="original"/>
-      </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="deleteAfterCopied">
-        <property name="text">
-         <string>Delete original version after copied</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QCheckBox" name="copyPasted">
-        <property name="text">
-         <string>Copy edited version after pasting original</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
+      <item row="9" column="4">
        <widget class="QLabel" name="copiedLabel">
         <property name="enabled">
          <bool>true</bool>
@@ -63,6 +36,233 @@
         </property>
        </widget>
       </item>
+      <item row="7" column="4">
+       <widget class="QTextEdit" name="edited"/>
+      </item>
+      <item row="8" column="2">
+       <widget class="QCheckBox" name="copyPasted">
+        <property name="text">
+         <string>Copy edited version after pasting original</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QCheckBox" name="deleteAfterCopied">
+        <property name="text">
+         <string>Delete original version after copied</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="4">
+       <widget class="QPushButton" name="copyButton">
+        <property name="text">
+         <string>Copy</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="2">
+       <widget class="QTextEdit" name="original"/>
+      </item>
+      <item row="6" column="2">
+       <widget class="QLabel" name="label">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Original</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="4">
+       <widget class="QLabel" name="label_2">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Edited</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="Line" name="line">
+      <property name="minimumSize">
+       <size>
+        <width>10</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0,0,0,0,0,0,0,0">
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Tags To Replace:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_3">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Rules:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="0">
+       <widget class="QPushButton" name="addOutputButton">
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QScrollArea" name="scrollArea">
+        <property name="styleSheet">
+         <string notr="true">background-color: #ffffff;</string>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="tagsToReplaceLayout">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>349</width>
+           <height>104</height>
+          </rect>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: #ffffff;</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QPushButton" name="addTagButton">
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
+       <widget class="QLabel" name="label_4">
+        <property name="font">
+         <font>
+          <pointsize>11</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Output:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="6" column="0">
+       <widget class="QPushButton" name="addRuleButton">
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="0">
+       <widget class="QScrollArea" name="scrollArea_3">
+        <property name="styleSheet">
+         <string notr="true">background-color: #ffffff;</string>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="outputLayout">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>349</width>
+           <height>104</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout"/>
+        </widget>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QScrollArea" name="scrollArea_2">
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="widgetResizable">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="rulesLayout">
+         <property name="geometry">
+          <rect>
+           <x>0</x>
+           <y>0</y>
+           <width>349</width>
+           <height>103</height>
+          </rect>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+         </layout>
+        </widget>
+       </widget>
+      </item>
      </layout>
     </item>
    </layout>
@@ -73,7 +273,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>697</width>
+     <width>923</width>
      <height>21</height>
     </rect>
    </property>
