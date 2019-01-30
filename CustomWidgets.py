@@ -154,6 +154,23 @@ class TagToReplaceResult(QtWidgets.QListWidgetItem):
         super(TagToReplaceResult, self).setData(p_int, new_any)
 
 
+class GroupResult(QtWidgets.QListWidgetItem):
+    def __init__(self, number):
+        super(GroupResult, self).__init__()
+        self.id = number
+        self.setTextAlignment(QtCore.Qt.AlignCenter)
+        font = QtGui.QFont('MS Shell Dlg 2', 10)
+        font.setBold(True)
+        self.setFont(font)
+        self.setText('Group ' + str(number))
+
+
+class GroupListWidget(QtWidgets.QListWidget):
+    def __init__(self):
+        super(GroupListWidget, self).__init__()
+
+    def move(self, *__args):
+        print(__args)
 
 
 def get_rule_names():

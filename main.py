@@ -34,6 +34,23 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
 
     def setup_ui_additional(self, window):
         self.window = window
+        self.tagsToReplaceList = CustomWidgets.GroupListWidget()
+        self.rulesList = CustomWidgets.GroupListWidget()
+        self.outputList = CustomWidgets.GroupListWidget()
+        self.rulesList.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.rulesList.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.rulesList.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.rulesList.setObjectName("rulesList")
+        self.gridLayout_2.addWidget(self.rulesList, 7, 1, 1, 3)
+        self.tagsToReplaceList.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+        self.tagsToReplaceList.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.tagsToReplaceList.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.tagsToReplaceList.setObjectName("tagsToReplaceList")
+        self.gridLayout_2.addWidget(self.tagsToReplaceList, 2, 1, 1, 3)
+        self.outputList.setDefaultDropAction(QtCore.Qt.MoveAction)
+        self.outputList.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        self.outputList.setObjectName("outputList")
+        self.gridLayout_2.addWidget(self.outputList, 9, 1, 1, 3)
         self.edited.setReadOnly(True)
         self.original.textChanged.connect(self.original_text_changed)
         self.original.verticalScrollBar().valueChanged.connect(lambda x: self.text_slider_change(x, self.edited))
@@ -48,11 +65,13 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.tag_to_replace_completer.setModel(self.tag_to_replace_complete_model)
         self.tag_to_replace_complete_model.setStringList(self.all_html_tags)
         self.addRuleButton.clicked.connect(self.add_rule_button_clicked)
-        self.removeRuleButton.clicked.connect(self.remove_rule_button_clicked)
+        self.removeRuleButton.clicked.connect(lambda: self.remove_item_from_list_widget(self.rulesList))
         self.editRuleButton.clicked.connect(self.edit_rule_button_clicked)
         self.addTagButton.clicked.connect(self.add_tag_button_clicked)
         self.editTagButton.clicked.connect(self.edit_tag_button_clicked)
-        self.removeTagButton.clicked.connect(self.remove_tag_button_clicked)
+        self.removeTagButton.clicked.connect(lambda: self.remove_item_from_list_widget(self.tagsToReplaceList))
+        self.addGroupButton.clicked.connect(self.add_group)
+        self.add_group()
 
     def add_tag_button_clicked(self):
         list_item = CustomWidgets.TagToReplaceResult()
@@ -64,11 +83,6 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         items = self.tagsToReplaceList.selectedItems()
         if len(items) == 1:
             self.tagsToReplaceList.editItem(items[0])
-
-    def remove_tag_button_clicked(self):
-        items = self.tagsToReplaceList.selectedIndexes()
-        for item in items:
-            self.tagsToReplaceList.takeItem(item.row())
 
     def add_rule_button_clicked(self):
         self.add_rule_dialog = CustomWidgets.RuleDialogLocal()
@@ -85,9 +99,12 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         list_item.rule_dialog = rule_dict['dialog']
         self.rulesList.addItem(list_item)
 
-    def remove_rule_button_clicked(self):
-        for item in self.rulesList.selectedItems():
-            self.rulesList.takeItem(self.rulesList.row(item))
+    def remove_item_from_list_widget(self, list_widget):
+        for item in list_widget.selectedItems():
+            if not isinstance(item, CustomWidgets.GroupResult):
+                list_widget.takeItem(list_widget.row(item))
+            else:
+                self.remove_group_from_all_lists(item.id)
 
     def edit_rule_button_clicked(self):
         if len(self.rulesList.selectedItems()) == 1:
@@ -98,8 +115,51 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
             self.add_rule_dialog.show()
 
     def edit_rule(self, rule_dict):
-        self.remove_rule_button_clicked()
+        self.remove_item_from_list_widget(self.rulesList)
         self.append_rule(rule_dict)
+
+    def add_group(self):
+        rule_list_item = CustomWidgets.GroupResult(len(self.get_list_of_groups(self.rulesList)) + 1)
+        tags_list_item = CustomWidgets.GroupResult(len(self.get_list_of_groups(self.tagsToReplaceList)) + 1)
+        out_list_item = CustomWidgets.GroupResult(len(self.get_list_of_groups(self.outputList)) + 1)
+        self.rulesList.addItem(rule_list_item)
+        self.tagsToReplaceList.addItem(tags_list_item)
+        self.outputList.addItem(out_list_item)
+
+    def remove_group_from_all_lists(self, number):
+        list_widgets = [self.tagsToReplaceList, self.rulesList, self.outputList]
+        for list_widget in list_widgets:
+            self.remove_group(list_widget, number)
+
+    def remove_group(self, list_widget, number):
+        for index in range(0, list_widget.count()):
+            list_item = list_widget.item(index)
+            try:
+                if list_item.id == number and list_item.id != 1:
+                    list_widget.takeItem(index)
+            except AttributeError:
+                pass
+        self.rename_group_list_items(self.get_list_of_groups(list_widget))
+
+    @staticmethod
+    def get_list_of_group_ids(list_widget):
+        group_ids = []
+        for index in range(0, list_widget.count()):
+            list_item = list_widget.item(index)
+            try:
+                group_ids.append(list_item.id)
+            except AttributeError:
+                pass
+        return group_ids
+
+    @staticmethod
+    def rename_group_list_items(items):
+        for index in range(0, len(items)):
+            correct_id = index + 1
+            item = items[index]
+            if item.id != correct_id:
+                item.id = correct_id
+                item.setText("Group " + str(correct_id))
 
     def get_list_of_rules(self):
         rules = []
@@ -112,6 +172,15 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         for index in range(0, self.tagsToReplaceList.count()):
             tags.append(self.tagsToReplaceList.item(index).letters)
         return tags
+
+    @staticmethod
+    def get_list_of_groups(group_list):
+        groups = []
+        for index in range(0, group_list.count()):
+            list_item = group_list.item(index)
+            if isinstance(list_item, CustomWidgets.GroupResult):
+                groups.append(list_item)
+        return groups
 
     def text_slider_change(self, event, scroll_to_track):
         scroll_to_track.verticalScrollBar().setValue(event)
