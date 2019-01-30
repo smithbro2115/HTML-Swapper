@@ -42,7 +42,7 @@ class HasAttributeThatIs(Rule):
         super(HasAttributeThatIs, self).__init__(does, None)
         self.attribute = attribute
         self.attribute_value = attribute_value
-        self.readable_string = "Tag " + self.bool_to_words() + " have a(n) " + self.attribute + " that is " \
+        self.readable_string = "Tag " + self.bool_to_words() + " have the attribute: " + self.attribute + " that = " \
                                + self.attribute_value
 
     def meets_condition(self, tag: bs4.element.Tag):

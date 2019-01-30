@@ -137,6 +137,25 @@ class RuleResult(QtWidgets.QListWidgetItem):
         self.rule_dialog = None
 
 
+class TagToReplaceResult(QtWidgets.QListWidgetItem):
+    def __init__(self):
+        super(TagToReplaceResult, self).__init__()
+        self.setFlags(self.flags() | QtCore.Qt.ItemIsEditable)
+        self.letters = ''
+
+    def setData(self, p_int, Any):
+        new_any = Any
+        letters = Any.replace('<', '')
+        self.letters = letters.replace('>', '')
+        if not str(new_any).startswith('<'):
+            new_any = '<' + new_any
+        if not str(new_any).endswith('>'):
+            new_any = new_any + '>'
+        super(TagToReplaceResult, self).setData(p_int, new_any)
+
+
+
+
 def get_rule_names():
     rule_names = []
     for rule in Rules.Rule.__subclasses__():

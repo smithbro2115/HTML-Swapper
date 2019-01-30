@@ -50,10 +50,32 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.addRuleButton.clicked.connect(self.add_rule_button_clicked)
         self.removeRuleButton.clicked.connect(self.remove_rule_button_clicked)
         self.editRuleButton.clicked.connect(self.edit_rule_button_clicked)
+        self.addTagButton.clicked.connect(self.add_tag_button_clicked)
+        self.editTagButton.clicked.connect(self.edit_tag_button_clicked)
+        self.removeTagButton.clicked.connect(self.remove_tag_button_clicked)
+
+    def add_tag_button_clicked(self):
+        list_item = CustomWidgets.TagToReplaceResult()
+        self.tagsToReplaceList.addItem(list_item)
+        index = self.tagsToReplaceList.row(list_item)
+        self.tagsToReplaceList.editItem(self.tagsToReplaceList.item(index))
+
+    def edit_tag_button_clicked(self):
+        items = self.tagsToReplaceList.selectedItems()
+        if len(items) == 1:
+            self.tagsToReplaceList.editItem(items[0])
+
+    def remove_tag_button_clicked(self):
+        items = self.tagsToReplaceList.selectedIndexes()
+        for item in items:
+            self.tagsToReplaceList.takeItem(item.row())
 
     def add_rule_button_clicked(self):
         self.add_rule_dialog = CustomWidgets.RuleDialogLocal()
-        self.add_rule_dialog.disconnect()
+        try:
+            self.add_rule_dialog.signals.disconnect()
+        except TypeError:
+            pass
         self.add_rule_dialog.signals.result.connect(self.append_rule)
         self.add_rule_dialog.show()
 
@@ -71,7 +93,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         if len(self.rulesList.selectedItems()) == 1:
             item = self.rulesList.selectedItems()[0]
             self.add_rule_dialog = self.rulesList.item(self.rulesList.row(item)).rule_dialog
-            self.add_rule_dialog.disconnect()
+            self.add_rule_dialog.signals.disconnect()
             self.add_rule_dialog.signals.result.connect(self.edit_rule)
             self.add_rule_dialog.show()
 
@@ -79,11 +101,24 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.remove_rule_button_clicked()
         self.append_rule(rule_dict)
 
+    def get_list_of_rules(self):
+        rules = []
+        for index in range(0, self.rulesList.count()):
+            rules.append(self.rulesList.item(index).rule)
+        return rules
+
+    def get_list_of_tags(self):
+        tags = []
+        for index in range(0, self.tagsToReplaceList.count()):
+            tags.append(self.tagsToReplaceList.item(index).letters)
+        return tags
+
     def text_slider_change(self, event, scroll_to_track):
         scroll_to_track.verticalScrollBar().setValue(event)
 
     def convert_local(self):
-        edited, indexes = self.converter.convert(self.original.toPlainText())
+        edited, indexes = self.converter.convert(self.original.toPlainText(), self.get_list_of_tags(),
+                                                 self.get_list_of_rules())
         self.edited.setPlainText(edited)
         TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
         if self.copyPasted.isChecked():
