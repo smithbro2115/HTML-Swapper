@@ -169,9 +169,11 @@ class GroupListWidget(QtWidgets.QListWidget):
     def __init__(self):
         super(GroupListWidget, self).__init__()
 
-    def move(self, *__args):
-        print(__args)
-
+    # def dragMoveEvent(self, *args, **kwargs):
+    #     event = args[0]
+    #     print(event.mimeData())
+    #     event.ignore()
+    #
 
 def get_rule_names():
     rule_names = []
