@@ -168,12 +168,32 @@ class GroupResult(QtWidgets.QListWidgetItem):
 class GroupListWidget(QtWidgets.QListWidget):
     def __init__(self):
         super(GroupListWidget, self).__init__()
+        model = self.model()
+        model.rowsMoved.connect(self.layout_changed)
 
-    # def dragMoveEvent(self, *args, **kwargs):
-    #     event = args[0]
-    #     print(event.mimeData())
-    #     event.ignore()
-    #
+    def layout_changed(self, old_row_index, old_row_int_1, old_row_int_2, new_row_index, new_row_int):
+        if new_row_int == 0:
+            self.try_to_move_to_0()
+        elif old_row_int_2 == 0:
+            self.try_to_move_group_1(new_row_int - 1)
+
+    def try_to_move_to_0(self):
+        try:
+            if not self.item(0).id == 1:
+                item = self.takeItem(0)
+                self.insertItem(1, item)
+        except AttributeError:
+            item = self.takeItem(0)
+            self.insertItem(1, item)
+
+    def try_to_move_group_1(self, row):
+        try:
+            if self.item(row).id == 1:
+                item = self.takeItem(row)
+                self.insertItem(0, item)
+        except AttributeError:
+            pass
+
 
 def get_rule_names():
     rule_names = []
