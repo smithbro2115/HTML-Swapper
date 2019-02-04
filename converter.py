@@ -7,8 +7,8 @@ class Converter:
         self.soup = None
         self.replaced = []
 
-    def convert(self, s, tags, rules):
-        print(tags, rules)
+    def convert(self, s, groups):
+        print(groups)
         self.replaced = []
         self.soup = bs4.BeautifulSoup(s, 'html.parser')
         all_iframes = self.soup.find_all('iframe')

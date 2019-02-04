@@ -34,8 +34,8 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
 
     def setup_ui_additional(self, window):
         self.window = window
-        self.tagsToReplaceList = CustomWidgets.GroupListWidget()
-        self.rulesList = CustomWidgets.GroupListWidget()
+        self.tagsToReplaceList = CustomWidgets.TagsListWidget()
+        self.rulesList = CustomWidgets.RulesListWidget()
         self.outputList = CustomWidgets.GroupListWidget()
         self.rulesList.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
         self.rulesList.setDefaultDropAction(QtCore.Qt.MoveAction)
@@ -147,139 +147,53 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.copy_pasted_changed()
         self.copied_label_animation = self.fade_in_and_out()
         self.copiedLabel.hide()
+        self.tagsToReplaceList.signals.removed_group.connect(self.remove_group_from_all_lists)
+        self.rulesList.signals.removed_group.connect(self.remove_group_from_all_lists)
+        self.outputList.signals.removed_group.connect(self.remove_group_from_all_lists)
         # self.tagToReplaceLineEdit.setCompleter(self.tag_to_replace_completer)
         self.tag_to_replace_completer.setModel(self.tag_to_replace_complete_model)
         self.tag_to_replace_complete_model.setStringList(self.all_html_tags)
-        self.addRuleButton.clicked.connect(self.add_rule_button_clicked)
-        self.removeRuleButton.clicked.connect(lambda: self.remove_item_from_list_widget(self.rulesList))
-        self.editRuleButton.clicked.connect(self.edit_rule_button_clicked)
-        self.addTagButton.clicked.connect(self.add_tag_button_clicked)
-        self.editTagButton.clicked.connect(self.edit_tag_button_clicked)
-        self.removeTagButton.clicked.connect(lambda: self.remove_item_from_list_widget(self.tagsToReplaceList))
-        self.addGroupButton.clicked.connect(self.add_group)
-        self.add_group()
+        self.addRuleButton.clicked.connect(self.rulesList.add_rule_button_clicked)
+        self.removeRuleButton.clicked.connect(self.rulesList.remove_item_from_list_widget)
+        self.editRuleButton.clicked.connect(self.rulesList.edit_rule_button_clicked)
+        self.addTagButton.clicked.connect(self.tagsToReplaceList.add_tag_button_clicked)
+        self.editTagButton.clicked.connect(self.tagsToReplaceList.edit_tag_button_clicked)
+        self.removeTagButton.clicked.connect(self.tagsToReplaceList.remove_item_from_list_widget)
+        self.addGroupButton.clicked.connect(self.add_group_to_all_lists)
+        self.add_group_to_all_lists()
 
-    def add_tag_button_clicked(self):
-        list_item = CustomWidgets.TagToReplaceResult()
-        self.tagsToReplaceList.addItem(list_item)
-        index = self.tagsToReplaceList.row(list_item)
-        self.tagsToReplaceList.editItem(self.tagsToReplaceList.item(index))
-
-    def edit_tag_button_clicked(self):
-        items = self.tagsToReplaceList.selectedItems()
-        if len(items) == 1:
-            self.tagsToReplaceList.editItem(items[0])
-
-    def add_rule_button_clicked(self):
-        self.add_rule_dialog = CustomWidgets.RuleDialogLocal()
-        try:
-            self.add_rule_dialog.signals.disconnect()
-        except TypeError:
-            pass
-        self.add_rule_dialog.signals.result.connect(self.append_rule)
-        self.add_rule_dialog.show()
-
-    def append_rule(self, rule_dict):
-        list_item = CustomWidgets.RuleResult(rule_dict['rule'].readable_string)
-        list_item.rule = rule_dict['rule']
-        list_item.rule_dialog = rule_dict['dialog']
-        self.rulesList.addItem(list_item)
-
-    def remove_item_from_list_widget(self, list_widget):
-        for item in list_widget.selectedItems():
-            if not isinstance(item, CustomWidgets.GroupResult):
-                list_widget.takeItem(list_widget.row(item))
-            else:
-                self.remove_group_from_all_lists(item.id)
-
-    def edit_rule_button_clicked(self):
-        if len(self.rulesList.selectedItems()) == 1:
-            item = self.rulesList.selectedItems()[0]
-            self.add_rule_dialog = self.rulesList.item(self.rulesList.row(item)).rule_dialog
-            self.add_rule_dialog.signals.disconnect()
-            self.add_rule_dialog.signals.result.connect(self.edit_rule)
-            self.add_rule_dialog.show()
-
-    def edit_rule(self, rule_dict):
-        self.remove_item_from_list_widget(self.rulesList)
-        self.append_rule(rule_dict)
-
-    def add_group(self):
-        rule_list_item = CustomWidgets.GroupResult(len(self.get_list_of_groups(self.rulesList)) + 1)
-        tags_list_item = CustomWidgets.GroupResult(len(self.get_list_of_groups(self.tagsToReplaceList)) + 1)
-        out_list_item = CustomWidgets.GroupResult(len(self.get_list_of_groups(self.outputList)) + 1)
-        self.rulesList.addItem(rule_list_item)
-        self.tagsToReplaceList.addItem(tags_list_item)
-        self.outputList.addItem(out_list_item)
+    def add_group_to_all_lists(self):
+        self.rulesList.add_group()
+        self.tagsToReplaceList.add_group()
+        self.outputList.add_group()
 
     def remove_group_from_all_lists(self, number):
         list_widgets = [self.tagsToReplaceList, self.rulesList, self.outputList]
         for list_widget in list_widgets:
-            self.remove_group(list_widget, number)
-
-    def remove_group(self, list_widget, number):
-        for index in range(0, list_widget.count()):
-            list_item = list_widget.item(index)
-            try:
-                if list_item.id == number and list_item.id != 1:
-                    list_widget.takeItem(index)
-            except AttributeError:
-                pass
-        self.rename_group_list_items(self.get_list_of_groups(list_widget))
-
-    @staticmethod
-    def get_list_of_group_ids(list_widget):
-        group_ids = []
-        for index in range(0, list_widget.count()):
-            list_item = list_widget.item(index)
-            try:
-                group_ids.append(list_item.id)
-            except AttributeError:
-                pass
-        return group_ids
-
-    @staticmethod
-    def rename_group_list_items(items):
-        for index in range(0, len(items)):
-            correct_id = index + 1
-            item = items[index]
-            if item.id != correct_id:
-                item.id = correct_id
-                item.setText("Group " + str(correct_id))
-
-    def get_list_of_rules(self):
-        rules = []
-        for index in range(0, self.rulesList.count()):
-            rules.append(self.rulesList.item(index).rule)
-        return rules
-
-    def get_list_of_tags(self):
-        tags = []
-        for index in range(0, self.tagsToReplaceList.count()):
-            tags.append(self.tagsToReplaceList.item(index).letters)
-        return tags
-
-    @staticmethod
-    def get_list_of_groups(group_list):
-        groups = []
-        for index in range(0, group_list.count()):
-            list_item = group_list.item(index)
-            if isinstance(list_item, CustomWidgets.GroupResult):
-                groups.append(list_item)
-        return groups
+            list_widget.remove_group_item(number)
+            list_widget.rename_group_list_items()
 
     def text_slider_change(self, event, scroll_to_track):
         scroll_to_track.verticalScrollBar().setValue(event)
 
     def convert_local(self):
-        edited, indexes = self.converter.convert(self.original.toPlainText(), self.get_list_of_tags(),
-                                                 self.get_list_of_rules())
+        edited, indexes = self.converter.convert(self.original.toPlainText(),
+                                                 self.get_list_of_groups_with_tags_and_rules())
         self.edited.setPlainText(edited)
         TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
         if self.copyPasted.isChecked():
             self.copy_edited()
         if self.deleteAfterCopied.isChecked() and self.deleteAfterCopied.isEnabled():
             self.original.clear()
+
+    def get_list_of_groups_with_tags_and_rules(self):
+        groups = []
+        for group_item in self.tagsToReplaceList.get_list_of_groups():
+            g_int = group_item.id
+            group = [g_int, self.tagsToReplaceList.get_list_of_tags_from_group(g_int),
+                     self.rulesList.get_list_of_rules_from_group(g_int)]
+            groups.append(group)
+        return groups
 
     def original_text_changed(self):
         if self.original.toPlainText() != '':

@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt5.QtCore import pyqtSignal
 import re
 import Rules
 import AddRuleDialog
@@ -39,16 +40,9 @@ class RuleDialogLocal(QtWidgets.QDialog):
 
     def accept(self):
         true_or_false = self.ui.trueOrFalseDropdown.currentText() == 'True'
-        try:
-            rule = self.rule_type(true_or_false, self.ui.keyLineEdit.text(), self.ui.valueLineEdit.text())
-            self.signals.result.emit({'rule': rule, 'dialog': self})
-        except TypeError:
-            try:
-                rule = self.rule_type(true_or_false, self.ui.valueLineEdit.text())
-                self.signals.result.emit({'rule': rule, 'dialog': self})
-            except TypeError:
-                rule = self.rule_type(true_or_false)
-                self.signals.result.emit({'rule': rule, 'dialog': self})
+        rule = self.rule_type(does=true_or_false, attribute_value=self.ui.keyLineEdit.text(),
+                              condition=self.ui.valueLineEdit.text())
+        self.signals.result.emit({'rule': rule, 'dialog': self})
 
         super(RuleDialogLocal, self).accept()
 
@@ -57,7 +51,9 @@ class RuleDialogLocal(QtWidgets.QDialog):
         retain_size.setRetainSizeWhenHidden(True)
         self.ui.keyFrame.setSizePolicy(retain_size)
         self.ui.valueFrame.setSizePolicy(retain_size)
+        self.ui.trueOrFalseFrame.setSizePolicy(retain_size)
         self.ui.ruleTypeDropdown.addItems(self.rule_names)
+        self.ui.ruleTypeDropdown.addItem('OR')
         self.ui.ruleTypeDropdown.currentTextChanged.connect(self.on_rule_type_change)
         self.on_rule_type_change(self.ui.ruleTypeDropdown.currentText())
         self.ui.trueOrFalseDropdown.addItems(['True', "False"])
@@ -67,8 +63,9 @@ class RuleDialogLocal(QtWidgets.QDialog):
     def on_rule_type_change(self, text):
         rule_type_name = text[4:]
         self.rule_type = Rules.get_rule_from_string(rule_type_name)
-        self.ui.valueFrame.setVisible(self.determine_if_value_should_be_shown(self.rule_type))
-        self.ui.keyFrame.setVisible(self.determine_if_key_should_be_shown(self.rule_type))
+        self.ui.valueFrame.setVisible(self.rule_type.needs_condition)
+        self.ui.keyFrame.setVisible(self.rule_type.needs_attribute)
+        self.ui.trueOrFalseFrame.setVisible(self.rule_type.needs_does)
         self.on_line_edit_value_change()
 
     @staticmethod
@@ -84,16 +81,31 @@ class RuleDialogLocal(QtWidgets.QDialog):
 
     @staticmethod
     def determine_if_value_should_be_shown(rule_type):
-        rule_type_sig = signature(rule_type)
-        if len(rule_type_sig.parameters) > 1:
-            return True
-        else:
+        try:
+            rule_type_sig = signature(rule_type)
+            if len(rule_type_sig.parameters) > 1:
+                return True
+            else:
+                return False
+        except TypeError:
             return False
 
     @staticmethod
     def determine_if_key_should_be_shown(rule_type):
-        rule_type_sig = signature(rule_type)
-        if len(rule_type_sig.parameters) > 2:
+        try:
+            rule_type_sig = signature(rule_type)
+            if len(rule_type_sig.parameters) > 2:
+                return True
+            else:
+                return False
+        except TypeError:
+            return False
+
+    @staticmethod
+    def determine_if_true_or_false_should_be_shown(rule_type):
+        name = rule_type.__name__
+        print(name)
+        if not name.lower() == 'or':
             return True
         else:
             return False
@@ -165,11 +177,16 @@ class GroupResult(QtWidgets.QListWidgetItem):
         self.setText('Group ' + str(number))
 
 
+class GroupListSignals(QtCore.QObject):
+    removed_group = pyqtSignal(int)
+
+
 class GroupListWidget(QtWidgets.QListWidget):
     def __init__(self):
         super(GroupListWidget, self).__init__()
         model = self.model()
         model.rowsMoved.connect(self.layout_changed)
+        self.signals = GroupListSignals()
 
     def layout_changed(self, old_row_index, old_row_int_1, old_row_int_2, new_row_index, new_row_int):
         if new_row_int == 0:
@@ -193,6 +210,153 @@ class GroupListWidget(QtWidgets.QListWidget):
                 self.insertItem(0, item)
         except AttributeError:
             pass
+
+    def get_all_values_from_group(self, g_int):
+        within_group = False
+        items = []
+        for item_index in range(0, self.count()):
+            item = self.item(item_index)
+            try:
+                if item.id == g_int:
+                    within_group = True
+                else:
+                    within_group = False
+            except AttributeError:
+                if within_group:
+                    items.append(item)
+        return items
+
+    def remove_item_from_list_widget(self):
+        for item in self.selectedItems():
+            if not isinstance(item, GroupResult):
+                self.takeItem(self.row(item))
+            else:
+                self.signals.removed_group.emit(item.id)
+
+    def remove_group_item(self, number):
+        for index in range(0, self.count()):
+            list_item = self.item(index)
+            try:
+                if list_item.id == number and list_item.id != 1:
+                    self.takeItem(index)
+            except AttributeError:
+                pass
+
+    def rename_group_list_items(self):
+        for index in range(0, len(self.get_list_of_groups())):
+            correct_id = index + 1
+            item = self.get_list_of_groups()[index]
+            if item.id != correct_id:
+                item.id = correct_id
+                item.setText("Group " + str(correct_id))
+
+    def get_list_of_group_ids(self):
+        group_ids = []
+        for index in range(0, self.count()):
+            list_item = self.item(index)
+            try:
+                group_ids.append(list_item.id)
+            except AttributeError:
+                pass
+        return group_ids
+
+    def add_group(self):
+        list_item = GroupResult(len(self.get_list_of_groups()) + 1)
+        self.addItem(list_item)
+
+    def get_list_of_groups(self):
+        groups = []
+        for index in range(0, self.count()):
+            list_item = self.item(index)
+            if isinstance(list_item, GroupResult):
+                groups.append(list_item)
+        return groups
+
+
+class TagsListWidget(GroupListWidget):
+    def edit_tag_button_clicked(self):
+        items = self.selectedItems()
+        if len(items) == 1:
+            self.editItem(items[0])
+
+    def add_tag_button_clicked(self):
+        list_item = TagToReplaceResult()
+        self.addItem(list_item)
+        index = self.row(list_item)
+        self.editItem(self.item(index))
+
+    def get_list_of_tags(self):
+        tags = []
+        for index in range(0, self.count()):
+            try:
+                tags.append(self.item(index).letters)
+            except AttributeError:
+                pass
+        return tags
+
+    def get_list_of_tags_from_group(self, g_int):
+        tags = []
+        tags_list = self.get_all_values_from_group(g_int)
+        for tag in tags_list:
+            tags.append(tag.letters)
+        return tags
+
+
+class RulesListWidget(GroupListWidget):
+    def __init__(self):
+        super(RulesListWidget, self).__init__()
+        self.add_rule_dialog = None
+
+    def add_rule_button_clicked(self):
+        self.add_rule_dialog = RuleDialogLocal()
+        try:
+            self.add_rule_dialog.signals.disconnect()
+        except TypeError:
+            pass
+        self.add_rule_dialog.signals.result.connect(self.append_rule)
+        self.add_rule_dialog.show()
+
+    def append_rule(self, rule_dict):
+        list_item = RuleResult(rule_dict['rule'].readable_string)
+        list_item.rule = rule_dict['rule']
+        list_item.rule_dialog = rule_dict['dialog']
+        self.addItem(list_item)
+
+    def edit_rule(self, rule_dict):
+        self.remove_item_from_list_widget()
+        self.append_rule(rule_dict)
+
+    def edit_rule_button_clicked(self):
+        if len(self.selectedItems()) == 1:
+            item = self.selectedItems()[0]
+            self.add_rule_dialog = self.item(self.row(item)).rule_dialog
+            self.add_rule_dialog.signals.disconnect()
+            self.add_rule_dialog.signals.result.connect(self.edit_rule)
+            self.add_rule_dialog.show()
+
+    def get_list_of_rules(self):
+        rules = [[]]
+        or_index = 0
+        for index in range(0, self.count()):
+            item = self.item(index)
+            if issubclass(type(item), Rules.Rule):
+                self.rules[or_index].append(item)
+            elif isinstance(item, Rules.Or):
+                or_index += 1
+                rules[or_index] = []
+        return rules
+
+    def get_list_of_rules_from_group(self, g_int):
+        rules = [[]]
+        or_index = 0
+        rules_list = self.get_all_values_from_group(g_int)
+        for rule in rules_list:
+            if issubclass(type(rule.rule), Rules.Rule):
+                rules[or_index].append(rule.rule)
+            elif isinstance(rule.rule, Rules.Or):
+                or_index += 1
+                rules.append([])
+        return rules
 
 
 def get_rule_names():
