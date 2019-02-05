@@ -4,8 +4,7 @@ import re
 import Rules
 import AddRuleDialog
 from inspect import signature
-import RuleWidgetTwoValues
-import TagToReplaceWidget
+import OutputWidget
 
 
 html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
@@ -20,6 +19,15 @@ html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article
              'span', 'strong', 'style', 'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'template',
              'textarea', 'tfoot', 'th', 'thead', 'time', 'title', 'tr', 'track', 'u', 'ul', 'var',
              'video', 'wbr']
+
+
+class OutputWidgetLocal(QtWidgets.QWidget):
+    def __init__(self, number, parent=None):
+        super(OutputWidgetLocal, self).__init__(parent=parent)
+        self.ui = OutputWidget.Ui_Form()
+        self.ui.setupUi(self)
+        self.ui.groupLabel.setText('Group ' + str(number))
+        self.id = number
 
 
 class RuleDialogSigs(QtCore.QObject):
@@ -357,6 +365,25 @@ class RulesListWidget(GroupListWidget):
                 or_index += 1
                 rules.append([])
         return rules
+
+
+class OutputScrollArea(QtWidgets.QScrollArea):
+    def __init__(self):
+        super(OutputScrollArea, self).__init__()
+        layout = QtWidgets.QVBoxLayout()
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.local_widget = QtWidgets.QWidget()
+        self.local_widget.setLayout(layout)
+        self.local_widget.setMaximumWidth(self.width())
+        self.local_widget.setStyleSheet(".QWidget {background-color: #ffffff;}")
+        self.setWidget(self.local_widget)
+        self.setWidgetResizable(True)
+        self.setMinimumHeight(100)
+
+    def add_group(self):
+        output_widget = OutputWidgetLocal(self.local_widget.layout().count() + 1, parent=self)
+        self.local_widget.layout().addWidget(output_widget)
 
 
 def get_rule_names():
