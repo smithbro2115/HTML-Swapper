@@ -1,9 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import YoutubeEmbedToLinkGui
-import converter
+from GUI import YoutubeEmbedToLinkGui, CustomWidgets, TextColor
+from Converter import converter
 import pyperclip
-import TextColor
-import CustomWidgets
 
 
 class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):

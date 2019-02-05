@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Programming\youtube_embed_to_link\RuleWidgetTwoValues.ui'
+# Form implementation generated from reading ui file 'D:\Programming\HTML-Swapper\RuleWidgetTwoValues.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #

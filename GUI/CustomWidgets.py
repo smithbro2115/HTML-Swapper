@@ -1,11 +1,9 @@
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtCore import pyqtSignal
 import re
-import Rules
-import AddRuleDialog
+from Converter import Rules
+from GUI import AddRuleDialog, OutputWidget
 from inspect import signature
-import OutputWidget
-
 
 html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
              'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption',
