@@ -143,6 +143,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.editTagButton.clicked.connect(self.tagsToReplaceList.edit_tag_button_clicked)
         self.removeTagButton.clicked.connect(self.tagsToReplaceList.remove_item_from_list_widget)
         self.addGroupButton.clicked.connect(self.add_group_to_all_lists)
+        self.rulesList.local_signals.changed_rules.connect(self.send_rules_to_outputs)
         self.add_group_to_all_lists()
 
     def add_group_to_all_lists(self):
@@ -151,10 +152,11 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.outputArea.add_group()
 
     def remove_group_from_all_lists(self, number):
-        list_widgets = [self.tagsToReplaceList, self.rulesList, self.outputList]
+        list_widgets = [self.tagsToReplaceList, self.rulesList, self.outputArea]
         for list_widget in list_widgets:
             list_widget.remove_group_item(number)
             list_widget.rename_group_list_items()
+        self.send_rules_to_outputs()
 
     def text_slider_change(self, event, scroll_to_track):
         scroll_to_track.verticalScrollBar().setValue(event)
@@ -183,6 +185,13 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
             self.convert_local()
         else:
             self.edited.clear()
+
+    def send_rules_to_outputs(self):
+        try:
+            for widget in self.outputArea.layout().findChildren(QtWidgets.QWidget):
+                widget.rules_changed(self.rulesList.get_list_of_rules_from_group(widget.id))
+        except AttributeError:
+            pass
 
     def copy_pasted_changed(self):
         if self.copyPasted.isChecked():

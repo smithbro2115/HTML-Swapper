@@ -31,7 +31,17 @@ class Rule:
             return "doesn't"
 
 
-class HasAttribute(Rule):
+class AttributeRule(Rule):
+    def __init__(self, **kwargs):
+        super(AttributeRule, self).__init__(**kwargs)
+
+
+class ContentRule(Rule):
+    def __init__(self, **kwargs):
+        super(ContentRule, self).__init__(**kwargs)
+
+
+class HasAttribute(AttributeRule):
     needs_condition = True
     needs_attribute = False
     needs_does = True
@@ -44,7 +54,7 @@ class HasAttribute(Rule):
         return tag.has_attr(self.kwargs['condition'])
 
 
-class HasAttributeThatIs(Rule):
+class HasAttributeThatIs(AttributeRule):
     needs_condition = True
     needs_attribute = True
     needs_does = True
@@ -63,7 +73,7 @@ class HasAttributeThatIs(Rule):
         return False
 
 
-class HasContents(Rule):
+class HasContents(ContentRule):
     needs_condition = False
     needs_attribute = False
     needs_does = True
@@ -76,7 +86,7 @@ class HasContents(Rule):
         return tag.contents != []
 
 
-class Contains(Rule):
+class Contains(ContentRule):
     needs_condition = True
     needs_attribute = False
     needs_does = True
@@ -92,7 +102,7 @@ class Contains(Rule):
         return False
 
 
-class ContainsTag(Rule):
+class ContainsTag(ContentRule):
     needs_condition = True
     needs_attribute = False
     needs_does = True
