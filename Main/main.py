@@ -187,11 +187,8 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
             self.edited.clear()
 
     def send_rules_to_outputs(self):
-        try:
-            for widget in self.outputArea.layout().findChildren(QtWidgets.QWidget):
-                widget.rules_changed(self.rulesList.get_list_of_rules_from_group(widget.id))
-        except AttributeError:
-            pass
+        for group in self.rulesList.get_list_of_groups():
+            self.outputArea.send_rules_to_outputs(self.rulesList.get_list_of_rules_from_group(group.id))
 
     def copy_pasted_changed(self):
         if self.copyPasted.isChecked():

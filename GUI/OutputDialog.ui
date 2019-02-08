@@ -6,26 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>424</width>
-    <height>109</height>
+    <width>449</width>
+    <height>146</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Output</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="0">
-    <widget class="QLabel" name="label">
-     <property name="font">
-      <font>
-       <pointsize>10</pointsize>
-      </font>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QScrollArea" name="scrollArea">
      <property name="sizePolicy">
@@ -37,7 +25,7 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>40</height>
+       <height>60</height>
       </size>
      </property>
      <property name="widgetResizable">
@@ -48,8 +36,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>404</width>
-        <height>38</height>
+        <width>429</width>
+        <height>58</height>
        </rect>
       </property>
       <property name="sizePolicy">
@@ -73,11 +61,11 @@
        </property>
        <item>
         <widget class="QWidget" name="scrollWidget" native="true">
-         <property name="maximumSize">
-          <size>
-           <width>16777215</width>
-           <height>40</height>
-          </size>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2"/>
         </widget>
@@ -93,6 +81,16 @@
      </property>
      <property name="standardButtons">
       <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLineEdit" name="lineEdit">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>30</height>
+      </size>
      </property>
     </widget>
    </item>

@@ -11,6 +11,7 @@ class Rule:
         self.needs_condition = False
         self.needs_attribute = False
         self.needs_does = False
+        self.values_saved = []
 
     def meets_condition(self, tag: bs4.element.Tag):
         """
@@ -48,6 +49,7 @@ class HasAttribute(AttributeRule):
 
     def __init__(self, **kwargs):
         super(HasAttribute, self).__init__(**kwargs)
+        self.values_saved.append(self.kwargs['condition'])
         self.readable_string = "Tag " + self.bool_to_words() + " have " + self.kwargs['condition'] + " as an attribute"
 
     def meets_condition(self, tag: bs4.element.Tag):
@@ -61,6 +63,7 @@ class HasAttributeThatIs(AttributeRule):
 
     def __init__(self, **kwargs):
         super(HasAttributeThatIs, self).__init__(**kwargs)
+        self.values_saved.append(self.kwargs['condition'])
         self.attribute_value = self.kwargs['attribute_value']
         self.condition = self.kwargs['condition']
         self.readable_string = "Tag " + self.bool_to_words() + " have the attribute: " + self.condition + " that = " \
@@ -80,6 +83,7 @@ class HasContents(ContentRule):
 
     def __init__(self, **kwargs):
         super(HasContents, self).__init__(**kwargs)
+        self.values_saved.append('Contents')
         self.readable_string = "Tag " + self.bool_to_words() + " have contents"
 
     def meets_condition(self, tag: bs4.element.Tag):
@@ -93,6 +97,7 @@ class Contains(ContentRule):
 
     def __init__(self, **kwargs):
         super(Contains, self).__init__(**kwargs)
+        self.values_saved.append('Contents')
         self.readable_string = "Tag " + self.bool_to_words() + " contain " + self.kwargs['condition']
 
     def meets_condition(self, tag: bs4.element.Tag):
@@ -109,6 +114,7 @@ class ContainsTag(ContentRule):
 
     def __init__(self, **kwargs):
         super(ContainsTag, self).__init__(**kwargs)
+        self.values_saved.append(self.kwargs['condition'] + ' Tag')
         self.readable_string = "Tag " + self.bool_to_words() + " contain a(n) " + self.kwargs['condition'] + " tag"
 
     def meets_condition(self, tag: bs4.element.Tag):

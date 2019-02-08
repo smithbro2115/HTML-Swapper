@@ -30,24 +30,32 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.rules = None
         self.output = None
+        self.buttons = []
         self.signals = OutputDialogSigs()
+        self.ui.scrollArea.verticalScrollBar().setEnabled(False)
 
     def open_window(self, rules):
         self.rules = rules
+        self.add_all_variable_buttons()
         self.open()
 
     def add_all_variable_buttons(self):
         for button in self.make_a_list_buttons_for_all_rules(self.get_all_constant_rules()):
-            self.ui.scrollWidget.layout().addWidget(button)
+            if button.text() not in self.buttons:
+                self.buttons.append(button.text())
+                self.ui.scrollWidget.layout().addWidget(button)
 
     def add_button_to_scroll_area(self, button):
         self.ui.scrollWidget.layout().addWidget(button)
 
     def get_all_constant_rules(self):
         try:
-            return list(set(self.rules[0]).intersection(self.rules[1:]))
-        except IndexError:
-            return self.rules[0]
+            if len(self.rules) > 1:
+                return list(set(self.rules[0]).intersection(self.rules[1:]))
+            else:
+                return self.rules[0]
+        except TypeError:
+            return None
 
     def make_a_list_buttons_for_all_rules(self, rules):
         buttons = []
@@ -56,8 +64,10 @@ class OutputDialogLocal(QtWidgets.QDialog):
         return buttons
 
     def make_button_of_rule(self, rule):
+        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         button = QtWidgets.QPushButton()
-        button.setText("[" + get_name_with_spaces_and_tag(rule.__name__) + "]")
+        button.setText("[" + rule.values_saved[0] + "]")
+        button.setSizePolicy(size_policy)
         button.clicked.connect(lambda: self.signals.button_pushed.emit(rule.__name__))
         return button
 
@@ -75,9 +85,9 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.id = number
         self.dialog = OutputDialogLocal()
-        self.ui.pushButton.clicked.connect(lambda: self.signals.button_pushed.emit(self.id))
+        self.ui.pushButton.clicked.connect(self.open_dialog)
         self.__valid = True
-        self.valid = False
+        self.valid = True
 
     @property
     def valid(self):
@@ -101,7 +111,7 @@ class OutputWidgetLocal(QtWidgets.QWidget):
             self.valid = False
 
     def validate_rules(self):
-        if set(self.used_rules).issubset(self.rules):
+        if all(x in self.used_rules for x in self.rules):
             return False
         else:
             return True
@@ -530,6 +540,10 @@ class OutputScrollArea(QtWidgets.QScrollArea):
             if isinstance(item, OutputWidgetLocal):
                 groups.append(item)
         return groups
+
+    def send_rules_to_outputs(self, rules):
+        for output in self.get_list_of_groups():
+            output.rules_changed(rules)
 
 
 def get_rule_names():
