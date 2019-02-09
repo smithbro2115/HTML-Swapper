@@ -51,14 +51,17 @@ class OutputDialogLocal(QtWidgets.QDialog):
     def get_all_constant_rules(self):
         try:
             if len(self.rules) > 1:
-                return list(set(self.rules[0]).intersection(self.rules[1:]))
+                print(*self.rules[1:])
+                return list(set(self.rules[0]).intersection(*self.rules[1:]))
             else:
                 return self.rules[0]
         except TypeError:
+            print('fail')
             return None
 
     def make_a_list_buttons_for_all_rules(self, rules):
         buttons = []
+        print(rules)
         for rule in rules:
             buttons.append(self.make_button_of_rule(rule))
         return buttons
