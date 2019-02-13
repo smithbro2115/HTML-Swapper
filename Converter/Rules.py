@@ -31,6 +31,15 @@ class Rule:
         else:
             return "doesn't"
 
+    # def __eq__(self, other):
+    #     if isinstance(other, self) and other.kwargs == self.kwargs:
+    #         return True
+    #     else:
+    #         return False
+    #
+    # def __ne__(self, other):
+    #     return not self.__eq__(other)
+
 
 class AttributeRule(Rule):
     def __init__(self, **kwargs):
