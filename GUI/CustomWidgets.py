@@ -4,6 +4,7 @@ import re
 from Converter import Rules
 from GUI import AddRuleDialog, OutputWidget, OutputDialog
 from inspect import signature
+import bs4
 
 html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
              'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption',
@@ -20,6 +21,7 @@ html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article
 
 
 class OutputDialogSigs(QtCore.QObject):
+    accepted = pyqtSignal(list)
     button_pushed = pyqtSignal(str)
 
 
@@ -30,14 +32,40 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.ui.setupUi(self)
         self.rules = None
         self.output = None
+        self.ui.lineEdit.textChanged.connect(self.validate_format)
         self.buttons = []
         self.signals = OutputDialogSigs()
         self.ui.scrollArea.verticalScrollBar().setEnabled(False)
+        self._valid = True
+        self.valid = True
+
+    def accept(self):
+        self.signals.accepted.emit([self.ui.lineEdit.text(), self.get_used_rules()])
+        super(OutputDialogLocal, self).accept()
+
+    @property
+    def valid(self):
+        return self._valid
+
+    @valid.setter
+    def valid(self, value):
+        self._valid = value
+        self.ui.buttonBox.buttons()[0].setEnabled(self._valid)
+        if self._valid:
+            self.ui.lineEdit.setGraphicsEffect(None)
+        else:
+            shadow = QtWidgets.QGraphicsDropShadowEffect()
+            shadow.setColor(QtGui.QColor(255, 0, 0))
+            shadow.setOffset(0)
+            shadow.setBlurRadius(10)
+            self.ui.lineEdit.setGraphicsEffect(shadow)
 
     def open_window(self, rules):
         self.rules = rules
-        self.add_all_variable_buttons()
-        self.open()
+        if self.rules is not None:
+            self.add_all_variable_buttons()
+            self.validate_format()
+            self.open()
 
     def add_all_variable_buttons(self):
         for button in self.make_a_list_buttons_for_all_rules(self.get_all_constant_rules()):
@@ -63,13 +91,36 @@ class OutputDialogLocal(QtWidgets.QDialog):
             buttons.append(self.make_button_of_rule(rule))
         return buttons
 
+    def rule_button_clicked(self, button):
+        self.ui.lineEdit.setText(self.ui.lineEdit.text() + button.text())
+
     def make_button_of_rule(self, rule):
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         button = QtWidgets.QPushButton()
         button.setText("[" + rule.values_saved[0] + "]")
         button.setSizePolicy(size_policy)
-        button.clicked.connect(lambda: self.signals.button_pushed.emit(rule.__name__))
+        button.clicked.connect(lambda: self.rule_button_clicked(button))
         return button
+
+    def issubset_of_available_rules(self, rules):
+        return set(rules).issubset(self.buttons)
+
+    def get_used_rules(self):
+        used_rule_names = re.findall('\[.*?\]', self.ui.lineEdit.text())
+        used_rules = []
+        for used_rule in used_rule_names:
+            used_rule = used_rule.replace('[', '').replace(']', '')
+            for rule in self.get_all_constant_rules():
+                print(used_rule.lower(), rule.values_saved[0].lower())
+                if used_rule.lower() == rule.values_saved[0].lower():
+                    used_rules.append(rule)
+        return used_rules
+
+    def validate_format(self):
+        text = self.ui.lineEdit.text()
+        used_rules = re.findall('\[.*?\]', text)
+        # edited_text = re.sub("[\[].*?[\]]", "test", text)
+        self.valid = self.issubset_of_available_rules(used_rules)
 
 
 class OutputWidgetLocal(QtWidgets.QWidget):
@@ -84,10 +135,21 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.used_rules = []
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.id = number
+        self.ui.replaceWithLabel.setTextFormat(QtCore.Qt.PlainText)
         self.dialog = OutputDialogLocal()
+        self.dialog.signals.accepted.connect(self.set_label)
         self.ui.pushButton.clicked.connect(self.open_dialog)
         self.__valid = True
         self.valid = True
+
+    def receive_dialog_message(self, message):
+        print(message)
+        self.set_label(message[0])
+        self.used_rules = message[1]
+
+    def set_label(self, text):
+        print(text)
+        self.ui.replaceWithLabel.setText(text)
 
     @property
     def valid(self):
