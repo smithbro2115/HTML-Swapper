@@ -33,6 +33,7 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.rules = None
         self.output = None
         self.ui.lineEdit.textChanged.connect(self.validate_format)
+        self.button_texts = []
         self.buttons = []
         self.signals = OutputDialogSigs()
         self.ui.scrollArea.verticalScrollBar().setEnabled(False)
@@ -62,40 +63,52 @@ class OutputDialogLocal(QtWidgets.QDialog):
 
     def open_window(self, rules):
         self.rules = rules
+        self.delete_all_buttons()
         if self.rules is not None:
             self.add_all_variable_buttons()
             self.validate_format()
             self.open()
 
     def add_all_variable_buttons(self):
+        self.delete_all_buttons()
+        self.buttons = []
+        self.button_texts = []
         for button in self.make_a_list_buttons_for_all_rules(self.get_all_constant_rules()):
-            if button.text() not in self.buttons:
-                self.buttons.append(button.text())
+            if button.text() not in self.button_texts:
+                self.buttons.append(button)
+                self.button_texts.append(button.text())
                 self.ui.scrollWidget.layout().addWidget(button)
 
     def add_button_to_scroll_area(self, button):
         self.ui.scrollWidget.layout().addWidget(button)
 
     def get_all_constant_rules(self):
+        self.take_out_all_false_rules()
         try:
             if len(self.rules) > 1:
-                print(*self.rules[1:])
                 return list(set(self.rules[0]).intersection(*self.rules[1:]))
             else:
                 return self.rules[0]
         except TypeError:
-            print('fail')
             return None
 
     def make_a_list_buttons_for_all_rules(self, rules):
         buttons = []
-        print(rules)
         for rule in rules:
             buttons.append(self.make_button_of_rule(rule))
         return buttons
 
+    def take_out_all_false_rules(self):
+        for or_set in self.rules:
+            for rule in or_set:
+                if not rule.kwargs['does']:
+                    or_set.remove(rule)
+
     def rule_button_clicked(self, button):
-        self.ui.lineEdit.setText(self.ui.lineEdit.text() + button.text())
+        index = self.ui.lineEdit.cursorPosition()
+        o = self.ui.lineEdit.text()
+        e = o[:index] + button.text() + o[index:]
+        self.ui.lineEdit.setText(e)
 
     def make_button_of_rule(self, rule):
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
@@ -106,7 +119,7 @@ class OutputDialogLocal(QtWidgets.QDialog):
         return button
 
     def issubset_of_available_rules(self, rules):
-        return set(rules).issubset(self.buttons)
+        return set(rules).issubset(self.button_texts)
 
     def get_used_rules(self):
         used_rule_names = re.findall('\[.*?\]', self.ui.lineEdit.text())
@@ -114,7 +127,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
         for used_rule in used_rule_names:
             used_rule = used_rule.replace('[', '').replace(']', '')
             for rule in self.get_all_constant_rules():
-                print(used_rule.lower(), rule.values_saved[0].lower())
                 if used_rule.lower() == rule.values_saved[0].lower():
                     used_rules.append(rule)
         return used_rules
@@ -124,6 +136,10 @@ class OutputDialogLocal(QtWidgets.QDialog):
         used_rules = re.findall('\[.*?\]', text)
         # edited_text = re.sub("[\[].*?[\]]", "test", text)
         self.valid = self.issubset_of_available_rules(used_rules)
+
+    def delete_all_buttons(self):
+        for button in self.buttons:
+            button.deleteLater()
 
 
 class OutputWidgetLocal(QtWidgets.QWidget):
@@ -140,18 +156,17 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.id = number
         self.ui.replaceWithLabel.setTextFormat(QtCore.Qt.PlainText)
         self.dialog = OutputDialogLocal()
-        self.dialog.signals.accepted.connect(self.set_label)
+        self.dialog.signals.accepted.connect(self.receive_dialog_message)
         self.ui.pushButton.clicked.connect(self.open_dialog)
         self.__valid = True
         self.valid = True
 
     def receive_dialog_message(self, message):
-        print(message)
         self.set_label(message[0])
         self.used_rules = message[1]
+        self.validate_rules()
 
     def set_label(self, text):
-        print(text)
         self.ui.replaceWithLabel.setText(text)
 
     @property
@@ -172,14 +187,11 @@ class OutputWidgetLocal(QtWidgets.QWidget):
 
     def rules_changed(self, rules):
         self.rules = rules
-        if not self.validate_rules():
-            self.valid = False
+        self.dialog.rules = rules
+        self.valid = self.validate_rules()
 
     def validate_rules(self):
-        if all(x in self.used_rules for x in self.rules):
-            return False
-        else:
-            return True
+        return set(self.used_rules).issubset(self.dialog.get_all_constant_rules())
 
     def rename(self, number):
         self.id = number
@@ -582,7 +594,7 @@ class OutputScrollArea(QtWidgets.QScrollArea):
     def remove_group_item(self, number):
         for widget in self.get_list_of_groups():
             try:
-                if widget.id == number:
+                if widget.id == number and not widget.id == 1:
                     self.local_widget.layout().takeAt(widget.id - 1)
                     widget.deleteLater()
             except AttributeError:
@@ -614,10 +626,10 @@ class OutputScrollArea(QtWidgets.QScrollArea):
 def get_rule_names():
     rule_names = []
     for rule in Rules.Rule.__subclasses__():
-        name = 'Tag ' + re.sub(r"(\w)([A-Z])", r"\1 \2", rule.__name__)
+        name = re.sub(r"(\w)([A-Z])", r"\1 \2", rule.__name__)
         rule_names.append(name)
     return rule_names
 
 
 def get_name_with_spaces_and_tag(name):
-    return 'Tag ' + re.sub(r"(\w)([A-Z])", r"\1 \2", name)
+    return re.sub(r"(\w)([A-Z])", r"\1 \2", name)

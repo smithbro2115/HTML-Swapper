@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Programming\HTML-Swapper\OutputWidget.ui'
+# Form implementation generated from reading ui file 'C:\Users\Josh\PycharmProjects\HTML-Swapper\GUI\OutputWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(292, 62)
+        Form.resize(292, 71)
         self.gridLayout_2 = QtWidgets.QGridLayout(Form)
         self.gridLayout_2.setContentsMargins(0, 0, 0, 0)
         self.gridLayout_2.setObjectName("gridLayout_2")
@@ -36,7 +36,12 @@ class Ui_Form(object):
         self.replaceWithLabel.setText("")
         self.replaceWithLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.replaceWithLabel.setObjectName("replaceWithLabel")
-        self.gridLayout.addWidget(self.replaceWithLabel, 1, 0, 1, 2)
+        self.gridLayout.addWidget(self.replaceWithLabel, 2, 0, 1, 2)
+        self.line = QtWidgets.QFrame(self.frame)
+        self.line.setFrameShape(QtWidgets.QFrame.HLine)
+        self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.line.setObjectName("line")
+        self.gridLayout.addWidget(self.line, 1, 0, 1, 2)
         self.gridLayout.setColumnStretch(0, 1)
         self.gridLayout.setColumnStretch(1, 3)
         self.gridLayout_2.addWidget(self.frame, 1, 0, 1, 1)

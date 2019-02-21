@@ -51,6 +51,11 @@ class ContentRule(Rule):
         super(ContentRule, self).__init__(**kwargs)
 
 
+class TagRule(Rule):
+    def __init__(self, **kwargs):
+        super(TagRule, self).__init__(**kwargs)
+
+
 class HasAttribute(AttributeRule):
     needs_condition = True
     needs_attribute = False
@@ -132,6 +137,34 @@ class ContainsTag(ContentRule):
                 return True
 
     def is_tag(self, tag):
+        return tag.name == self.kwargs['condition']
+
+
+class IsTag(TagRule):
+    needs_condition = False
+    needs_attribute = False
+    needs_does = True
+
+    def __init__(self, **kwargs):
+        super(IsTag, self).__init__(**kwargs)
+        self.values_saved.append('Tag')
+        self.readable_string = "Element is a Tag"
+
+    def meets_condition(self, element):
+        return isinstance(element, bs4.element.Tag)
+
+
+class TagIs(TagRule):
+    needs_condition = True
+    needs_attribute = False
+    needs_does = True
+
+    def __init__(self, **kwargs):
+        super(TagIs, self).__init__(**kwargs)
+        self.values_saved.append('Tag')
+        self.readable_string = "Element is a " + self.kwargs['condition'] + " tag"
+
+    def meets_condition(self, tag: bs4.element.Tag):
         return tag.name == self.kwargs['condition']
 
 
