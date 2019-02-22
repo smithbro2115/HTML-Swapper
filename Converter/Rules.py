@@ -162,7 +162,7 @@ class TagIs(TagRule):
     def __init__(self, **kwargs):
         super(TagIs, self).__init__(**kwargs)
         self.values_saved.append('Tag')
-        self.readable_string = "Element is a " + self.kwargs['condition'] + " tag"
+        self.readable_string = "Element is a(n) <" + self.kwargs['condition'] + "> tag"
 
     def meets_condition(self, tag: bs4.element.Tag):
         return tag.name == self.kwargs['condition']

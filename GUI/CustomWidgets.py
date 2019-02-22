@@ -23,6 +23,21 @@ html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article
 class OutputDialogSigs(QtCore.QObject):
     accepted = pyqtSignal(list)
     button_pushed = pyqtSignal(str)
+    valid = pyqtSignal(bool)
+
+
+class OutputRuleButton(QtWidgets.QPushButton):
+    def __init__(self):
+        super(OutputRuleButton, self).__init__()
+        self.rule = None
+
+    def __eq__(self, other):
+        if other == self.text():
+            return True
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
 
 class OutputDialogLocal(QtWidgets.QDialog):
@@ -38,6 +53,7 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.signals = OutputDialogSigs()
         self.ui.scrollArea.verticalScrollBar().setEnabled(False)
         self._valid = True
+        self.used_rules = []
         self.valid = True
 
     def accept(self):
@@ -60,14 +76,18 @@ class OutputDialogLocal(QtWidgets.QDialog):
             shadow.setOffset(0)
             shadow.setBlurRadius(10)
             self.ui.lineEdit.setGraphicsEffect(shadow)
+        self.signals.valid.emit(self._valid)
 
     def open_window(self, rules):
+        self.setup(rules)
+        self.open()
+
+    def setup(self, rules):
         self.rules = rules
         self.delete_all_buttons()
         if self.rules is not None:
             self.add_all_variable_buttons()
             self.validate_format()
-            self.open()
 
     def add_all_variable_buttons(self):
         self.delete_all_buttons()
@@ -112,34 +132,34 @@ class OutputDialogLocal(QtWidgets.QDialog):
 
     def make_button_of_rule(self, rule):
         size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        button = QtWidgets.QPushButton()
+        button = OutputRuleButton()
+        button.rule = rule
         button.setText("[" + rule.values_saved[0] + "]")
         button.setSizePolicy(size_policy)
         button.clicked.connect(lambda: self.rule_button_clicked(button))
         return button
 
     def issubset_of_available_rules(self, rules):
-        return set(rules).issubset(self.button_texts)
+        for rule in rules:
+            if rule not in self.buttons:
+                return False
+        return True
 
     def get_used_rules(self):
-        used_rule_names = re.findall('\[.*?\]', self.ui.lineEdit.text())
-        used_rules = []
-        for used_rule in used_rule_names:
-            used_rule = used_rule.replace('[', '').replace(']', '')
-            for rule in self.get_all_constant_rules():
-                if used_rule.lower() == rule.values_saved[0].lower():
-                    used_rules.append(rule)
-        return used_rules
+        return re.findall('\[.*?\]', self.ui.lineEdit.text())
 
     def validate_format(self):
-        text = self.ui.lineEdit.text()
-        used_rules = re.findall('\[.*?\]', text)
+        self.valid = self.is_valid()
+
+    def is_valid(self):
+        self.used_rules = self.get_used_rules()
         # edited_text = re.sub("[\[].*?[\]]", "test", text)
-        self.valid = self.issubset_of_available_rules(used_rules)
+        return self.issubset_of_available_rules(self.used_rules)
 
     def delete_all_buttons(self):
         for button in self.buttons:
             button.deleteLater()
+        self.button_texts = []
 
 
 class OutputWidgetLocal(QtWidgets.QWidget):
@@ -157,6 +177,7 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.ui.replaceWithLabel.setTextFormat(QtCore.Qt.PlainText)
         self.dialog = OutputDialogLocal()
         self.dialog.signals.accepted.connect(self.receive_dialog_message)
+        self.dialog.signals.valid.connect(lambda x: self.set_valid(x))
         self.ui.pushButton.clicked.connect(self.open_dialog)
         self.__valid = True
         self.valid = True
@@ -164,10 +185,12 @@ class OutputWidgetLocal(QtWidgets.QWidget):
     def receive_dialog_message(self, message):
         self.set_label(message[0])
         self.used_rules = message[1]
-        self.validate_rules()
 
     def set_label(self, text):
         self.ui.replaceWithLabel.setText(text)
+
+    def set_valid(self, value):
+        self.valid = value
 
     @property
     def valid(self):
@@ -187,11 +210,8 @@ class OutputWidgetLocal(QtWidgets.QWidget):
 
     def rules_changed(self, rules):
         self.rules = rules
-        self.dialog.rules = rules
-        self.valid = self.validate_rules()
-
-    def validate_rules(self):
-        return set(self.used_rules).issubset(self.dialog.get_all_constant_rules())
+        self.dialog.setup(rules)
+        self.dialog.validate_format()
 
     def rename(self, number):
         self.id = number
@@ -493,6 +513,36 @@ class RulesListWidget(GroupListWidget):
         super(RulesListWidget, self).__init__()
         self.add_rule_dialog = None
         self.local_signals = RuleListSigs()
+        self.valid = True
+
+    @property
+    def valid(self):
+        return self.are_rules_valid()
+
+    @valid.setter
+    def valid(self, value):
+        if value:
+            self.setGraphicsEffect(None)
+        else:
+            shadow = QtWidgets.QGraphicsDropShadowEffect()
+            shadow.setColor(QtGui.QColor(255, 0, 0))
+            shadow.setOffset(0)
+            shadow.setBlurRadius(10)
+            self.setGraphicsEffect(shadow)
+
+    def validate_rules(self):
+        self.valid = self.are_rules_valid()
+
+    def are_rules_valid(self):
+        for g_int in range(len(self.get_list_of_groups())):
+            for or_group in self.get_list_of_rules_from_group(g_int+1):
+                count = 0
+                for rule in or_group:
+                    if isinstance(rule, Rules.TagIs):
+                        count += 1
+                if count > 1:
+                    return False
+        return True
 
     def add_group(self):
         super(RulesListWidget, self).add_group()
@@ -510,6 +560,7 @@ class RulesListWidget(GroupListWidget):
         super(RulesListWidget, self).layout_changed(old_row_index, old_row_int_1, old_row_int_2,
                                                     new_row_index, new_row_int)
         self.local_signals.changed_rules.emit()
+        self.validate_rules()
 
     def add_rule_button_clicked(self):
         self.add_rule_dialog = RuleDialogLocal()
@@ -526,11 +577,13 @@ class RulesListWidget(GroupListWidget):
         list_item.rule_dialog = rule_dict['dialog']
         self.addItem(list_item)
         self.local_signals.changed_rules.emit()
+        self.validate_rules()
 
     def edit_rule(self, rule_dict):
         self.remove_item_from_list_widget()
         self.append_rule(rule_dict)
         self.local_signals.changed_rules.emit()
+        self.validate_rules()
 
     def edit_rule_button_clicked(self):
         if len(self.selectedItems()) == 1:
@@ -544,9 +597,12 @@ class RulesListWidget(GroupListWidget):
         rules = [[]]
         or_index = 0
         for index in range(0, self.count()):
-            item = self.item(index)
+            try:
+                item = self.item(index).rule
+            except AttributeError:
+                continue
             if issubclass(type(item), Rules.Rule):
-                self.rules[or_index].append(item)
+                rules[or_index].append(item)
             elif isinstance(item, Rules.Or):
                 or_index += 1
                 rules[or_index] = []
@@ -556,10 +612,10 @@ class RulesListWidget(GroupListWidget):
         rules = [[]]
         or_index = 0
         rules_list = self.get_all_values_from_group(g_int)
-        for rule in rules_list:
-            if issubclass(type(rule.rule), Rules.Rule):
-                rules[or_index].append(rule.rule)
-            elif isinstance(rule.rule, Rules.Or):
+        for rule in [rule.rule for rule in rules_list]:
+            if issubclass(type(rule), Rules.Rule):
+                rules[or_index].append(rule)
+            elif isinstance(rule, Rules.Or):
                 or_index += 1
                 rules.append([])
         return rules
@@ -618,9 +674,11 @@ class OutputScrollArea(QtWidgets.QScrollArea):
                 groups.append(item)
         return groups
 
-    def send_rules_to_outputs(self, rules):
-        for output in self.get_list_of_groups():
-            output.rules_changed(rules)
+    def send_rules_to_outputs(self, group_list):
+        for group in group_list:
+            for output in self.get_list_of_groups():
+                if output.id == group[0]:
+                    output.rules_changed(group[1])
 
 
 def get_rule_names():
