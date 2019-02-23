@@ -4,7 +4,7 @@ import re
 from Converter import Rules
 from GUI import AddRuleDialog, OutputWidget, OutputDialog
 from inspect import signature
-import bs4
+from Converter.Output import Output
 
 html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
              'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption',
@@ -77,6 +77,25 @@ class OutputDialogLocal(QtWidgets.QDialog):
             shadow.setBlurRadius(10)
             self.ui.lineEdit.setGraphicsEffect(shadow)
         self.signals.valid.emit(self._valid)
+
+    def make_output(self):
+        attributes_to_save, contents_to_save, tags = self.separate_rules_into_sorted_lists(self.used_rules)
+        return Output(self.ui.lineEdit.text(),
+                      attributes=attributes_to_save, contents=contents_to_save, tag_type=tags[0])
+
+    @staticmethod
+    def separate_rules_into_sorted_lists(rules):
+        attributes = []
+        contents = []
+        tags = []
+        for rule in rules:
+            if isinstance(rule, Rules.AttributeRule):
+                attributes.append(rule.values_saved)
+            elif isinstance(rule, Rules.ContentRule):
+                contents.append(rule.values_saved)
+            elif isinstance(rule, Rules.TagRule):
+                tags.append(rule.values_saved)
+        return attributes, contents, tags
 
     def open_window(self, rules):
         self.setup(rules)
