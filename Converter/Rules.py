@@ -184,7 +184,7 @@ class AllContents(All):
 
 class AllOfTag(All):
     def __init__(self):
-        self.values_saved = ['Tag']
+        self.values_saved = ['Full Tag']
 
 
 class Or:
@@ -210,6 +210,7 @@ def separate_rules_into_sorted_lists(rules):
     attributes = []
     contents = []
     tags = []
+    alls = []
     for rule in rules:
         if isinstance(rule, AttributeRule):
             attributes.append(rule)
@@ -217,7 +218,9 @@ def separate_rules_into_sorted_lists(rules):
             contents.append(rule)
         elif isinstance(rule, TagRule):
             tags.append(rule)
-    return attributes, contents, tags
+        elif isinstance(rule, All):
+            alls.append(rule)
+    return attributes, contents, tags, alls
 
 
 def get_all_values_saved(rules):
@@ -228,5 +231,5 @@ def get_all_values_saved(rules):
 
 
 def get_separated_list_of_values_saved(rules):
-    attributes, contents, tags = separate_rules_into_sorted_lists(rules)
-    return get_all_values_saved(attributes), get_all_values_saved(contents), get_all_values_saved(tags)
+    attributes, contents, tags, alls = separate_rules_into_sorted_lists(rules)
+    return get_all_values_saved(attributes), get_all_values_saved(contents), get_all_values_saved(tags), alls

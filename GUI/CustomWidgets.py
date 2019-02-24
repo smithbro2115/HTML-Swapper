@@ -86,9 +86,8 @@ class OutputDialogLocal(QtWidgets.QDialog):
     def setup(self, rules):
         self.rules = rules
         self.delete_all_buttons()
-        if self.rules is not None:
-            self.add_all_variable_buttons()
-            self.validate_format()
+        self.add_all_variable_buttons()
+        self.validate_format()
 
     def add_all_variable_buttons(self):
         self.delete_all_buttons()
@@ -98,7 +97,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
             list_of_rules = self.get_all_constant_rules() + self.default_rules
         except TypeError:
             list_of_rules = self.default_rules
-        print(self.default_rules)
         for button in self.make_a_list_buttons_for_all_rules(list_of_rules):
             if button.text() not in self.button_texts:
                 self.buttons.append(button)
@@ -120,7 +118,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
 
     def make_a_list_buttons_for_all_rules(self, rules):
         buttons = []
-        print(rules)
         for rule in rules:
             buttons.append(self.make_button_of_rule(rule))
         return buttons
@@ -133,7 +130,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
                             or_set.remove(rule)
                 except TypeError:
                     continue
-
 
     def rule_button_clicked(self, button):
         index = self.ui.lineEdit.cursorPosition()
@@ -203,10 +199,12 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.valid = True
 
     def make_output(self, output_format):
-        attributes_to_save, contents_to_save, tags = Rules.get_separated_list_of_values_saved(self.used_rules)
-        print(self.used_rules)
-        self.output = Output(output_format, attributes=attributes_to_save, contents=contents_to_save, tag_type=tags[0])
-        print(self.output)
+        attributes_to_save, contents_to_save, tags, alls = Rules.get_separated_list_of_values_saved(self.used_rules)
+        try:
+            self.output = Output(output_format, alls=alls, attributes=attributes_to_save, contents=contents_to_save,
+                                 tag_type=tags[0])
+        except IndexError:
+            self.output = Output(output_format, alls=alls, attributes=attributes_to_save, contents=contents_to_save)
 
     def receive_dialog_message(self, message):
         self.set_label(message[0])
