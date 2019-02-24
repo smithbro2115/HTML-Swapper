@@ -46,7 +46,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.ui = OutputDialog.Ui_OutputDialog()
         self.ui.setupUi(self)
         self.rules = None
-        self.output = None
         self.ui.lineEdit.textChanged.connect(self.validate_format)
         self.button_texts = []
         self.buttons = []
@@ -55,6 +54,8 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self._valid = True
         self.used_rules = []
         self.valid = True
+        self.default_rules = [Rules.AllAttributes(), Rules.AllContents(), Rules.AllOfTag()]
+        print(self.default_rules)
 
     def accept(self):
         self.signals.accepted.emit([self.ui.lineEdit.text(), self.get_used_rules()])
@@ -78,25 +79,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
             self.ui.lineEdit.setGraphicsEffect(shadow)
         self.signals.valid.emit(self._valid)
 
-    def make_output(self):
-        attributes_to_save, contents_to_save, tags = self.separate_rules_into_sorted_lists(self.used_rules)
-        return Output(self.ui.lineEdit.text(),
-                      attributes=attributes_to_save, contents=contents_to_save, tag_type=tags[0])
-
-    @staticmethod
-    def separate_rules_into_sorted_lists(rules):
-        attributes = []
-        contents = []
-        tags = []
-        for rule in rules:
-            if isinstance(rule, Rules.AttributeRule):
-                attributes.append(rule.values_saved)
-            elif isinstance(rule, Rules.ContentRule):
-                contents.append(rule.values_saved)
-            elif isinstance(rule, Rules.TagRule):
-                tags.append(rule.values_saved)
-        return attributes, contents, tags
-
     def open_window(self, rules):
         self.setup(rules)
         self.open()
@@ -112,7 +94,12 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.delete_all_buttons()
         self.buttons = []
         self.button_texts = []
-        for button in self.make_a_list_buttons_for_all_rules(self.get_all_constant_rules()):
+        try:
+            list_of_rules = self.get_all_constant_rules() + self.default_rules
+        except TypeError:
+            list_of_rules = self.default_rules
+        print(self.default_rules)
+        for button in self.make_a_list_buttons_for_all_rules(list_of_rules):
             if button.text() not in self.button_texts:
                 self.buttons.append(button)
                 self.button_texts.append(button.text())
@@ -125,23 +112,28 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.take_out_all_false_rules()
         try:
             if len(self.rules) > 1:
-                return list(set(self.rules[0]).intersection(*self.rules[1:]))
+                return list(set(self.rules[0]).intersection(*self.rules[1:])) + self.default_rules
             else:
-                return self.rules[0]
+                return self.rules[0] + self.default_rules
         except TypeError:
             return None
 
     def make_a_list_buttons_for_all_rules(self, rules):
         buttons = []
+        print(rules)
         for rule in rules:
             buttons.append(self.make_button_of_rule(rule))
         return buttons
 
     def take_out_all_false_rules(self):
-        for or_set in self.rules:
-            for rule in or_set:
-                if not rule.kwargs['does']:
-                    or_set.remove(rule)
+            for or_set in self.rules:
+                try:
+                    for rule in or_set:
+                        if not rule.kwargs['does']:
+                            or_set.remove(rule)
+                except TypeError:
+                    continue
+
 
     def rule_button_clicked(self, button):
         index = self.ui.lineEdit.cursorPosition()
@@ -164,14 +156,22 @@ class OutputDialogLocal(QtWidgets.QDialog):
                 return False
         return True
 
-    def get_used_rules(self):
+    def get_used_rules_text(self):
         return re.findall('\[.*?\]', self.ui.lineEdit.text())
+
+    def get_used_rules(self):
+        used = []
+        used_text = self.get_used_rules_text()
+        for button in self.buttons:
+            if button in used_text:
+                used.append(button.rule)
+        return used
 
     def validate_format(self):
         self.valid = self.is_valid()
 
     def is_valid(self):
-        self.used_rules = self.get_used_rules()
+        self.used_rules = self.get_used_rules_text()
         # edited_text = re.sub("[\[].*?[\]]", "test", text)
         return self.issubset_of_available_rules(self.used_rules)
 
@@ -190,6 +190,7 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.ui.pushButton.setStyleSheet("background-color: #E1E1E1;")
         self.ui.groupLabel.setText('Group ' + str(number))
         self.rules = None
+        self.output = None
         self.used_rules = []
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.id = number
@@ -201,9 +202,16 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.__valid = True
         self.valid = True
 
+    def make_output(self, output_format):
+        attributes_to_save, contents_to_save, tags = Rules.get_separated_list_of_values_saved(self.used_rules)
+        print(self.used_rules)
+        self.output = Output(output_format, attributes=attributes_to_save, contents=contents_to_save, tag_type=tags[0])
+        print(self.output)
+
     def receive_dialog_message(self, message):
         self.set_label(message[0])
         self.used_rules = message[1]
+        self.make_output(message[0])
 
     def set_label(self, text):
         self.ui.replaceWithLabel.setText(text)

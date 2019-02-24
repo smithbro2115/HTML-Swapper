@@ -147,7 +147,7 @@ class IsTag(TagRule):
 
     def __init__(self, **kwargs):
         super(IsTag, self).__init__(**kwargs)
-        self.values_saved.append('Tag')
+        self.values_saved.append('Tag Type')
         self.readable_string = "Element is a Tag"
 
     def meets_condition(self, element):
@@ -161,11 +161,30 @@ class TagIs(TagRule):
 
     def __init__(self, **kwargs):
         super(TagIs, self).__init__(**kwargs)
-        self.values_saved.append('Tag')
+        self.values_saved.append('Tag Type')
         self.readable_string = "Element is a(n) <" + self.kwargs['condition'] + "> tag"
 
     def meets_condition(self, tag: bs4.element.Tag):
         return tag.name == self.kwargs['condition']
+
+
+class All:
+    pass
+
+
+class AllAttributes(All):
+    def __init__(self):
+        self.values_saved = ['Attributes']
+
+
+class AllContents(All):
+    def __init__(self):
+        self.values_saved = ['Contents']
+
+
+class AllOfTag(All):
+    def __init__(self):
+        self.values_saved = ['Tag']
 
 
 class Or:
@@ -185,3 +204,29 @@ def get_rule_from_string(rule_string):
             return rule_class
     else:
         return Or
+
+
+def separate_rules_into_sorted_lists(rules):
+    attributes = []
+    contents = []
+    tags = []
+    for rule in rules:
+        if isinstance(rule, AttributeRule):
+            attributes.append(rule)
+        elif isinstance(rule, ContentRule):
+            contents.append(rule)
+        elif isinstance(rule, TagRule):
+            tags.append(rule)
+    return attributes, contents, tags
+
+
+def get_all_values_saved(rules):
+    values_saved = []
+    for rule in rules:
+        values_saved.append(rule.values_saved)
+    return values_saved
+
+
+def get_separated_list_of_values_saved(rules):
+    attributes, contents, tags = separate_rules_into_sorted_lists(rules)
+    return get_all_values_saved(attributes), get_all_values_saved(contents), get_all_values_saved(tags)
