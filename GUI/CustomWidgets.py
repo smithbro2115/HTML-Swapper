@@ -55,7 +55,6 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self.used_rules = []
         self.valid = True
         self.default_rules = [Rules.AllAttributes(), Rules.AllContents(), Rules.AllOfTag()]
-        print(self.default_rules)
 
     def accept(self):
         self.signals.accepted.emit([self.ui.lineEdit.text(), self.get_used_rules()])
@@ -234,6 +233,7 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.dialog.open_window(self.rules)
 
     def rules_changed(self, rules):
+        print(rules)
         self.rules = rules
         self.dialog.setup(rules)
         self.dialog.validate_format()
@@ -711,10 +711,17 @@ class OutputScrollArea(QtWidgets.QScrollArea):
                 groups.append(item)
         return groups
 
+    def get_dict_of_group_outputs(self):
+        g_dict = {}
+        for g in self.get_list_of_groups():
+            g_dict[g.id] = g
+        return g_dict
+
     def send_rules_to_outputs(self, group_list):
         for group in group_list:
             for output in self.get_list_of_groups():
-                if output.id == group[0]:
+                print(output)
+                if output.id == group:
                     output.rules_changed(group[1])
 
 

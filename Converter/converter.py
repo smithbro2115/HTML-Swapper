@@ -6,18 +6,62 @@ class Converter:
     def __init__(self):
         self.soup = None
         self.replaced = []
+        self.rules = []
 
     def convert(self, s, rules, outputs):
-        print(s, rules, outputs)
+        self.rules = rules
         self.replaced = []
         self.soup = bs4.BeautifulSoup(s, 'html.parser')
-        all_iframes = self.soup.find_all('iframe')
-        all_p = self.soup.find_all('p')
-        all_youtube_embeds = self.find_all_from_contents('https://youtu.be/', all_p)
-        self.replace_embed_link_with_link(all_youtube_embeds)
-        self.replace_embed_frame_with_link(all_iframes)
-        text_html = str(self.soup)
-        return text_html, self.find_indexes_of_new_tags(text_html)
+        matching_tags = self.get_matching_tags(self.rules, self.get_list_of_tags())
+        print(self.get_dict_of_old_and_new_tags(matching_tags, outputs))
+
+    def get_dict_of_old_and_new_tags(self, tags, outputs):
+        tag_dict = {}
+        for k, v in tags:
+            for tag in v:
+                tag_dict[tag] = outputs[k].output.make_tag(tag)
+
+    def get_list_of_tags(self):
+        return self.soup.find_all()
+
+    def get_matching_tags(self, rules, tags):
+        groups = {}
+        for tag in tags:
+            groups = self.merge_dicts(groups, self.test_if_tag_matches_any_rules(rules, tag))
+        return groups
+
+    @staticmethod
+    def merge_dicts(dict_1, dict_2):
+        new_dict = dict_1
+        for k, v in dict_2.items():
+            for tag in v:
+                try:
+                    new_dict[k].append(tag)
+                except KeyError:
+                    new_dict[k] = [tag]
+        return new_dict
+
+    def test_if_tag_matches_any_rules(self, rules, tag):
+        tag_list_with_group_ids = {}
+        for group, g_int in zip(rules, range(len(rules))):
+            if self.test_if_tag_matches_group(group, tag):
+                try:
+                    tag_list_with_group_ids[g_int + 1].append(tag)
+                except KeyError:
+                    tag_list_with_group_ids[g_int + 1] = [tag]
+        return tag_list_with_group_ids
+
+    def test_if_tag_matches_group(self, group, tag):
+        for or_group in group:
+            if self.test_if_tag_matches_or_group(or_group, tag):
+                return True
+        return False
+
+    def test_if_tag_matches_or_group(self, or_group, tag):
+        for rule in or_group:
+            if not rule.passes(tag):
+                return False
+        return True
 
     def find_all_from_contents(self, content, sources):
         results = {}

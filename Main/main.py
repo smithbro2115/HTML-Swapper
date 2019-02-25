@@ -146,7 +146,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
             if self.outputArea.valid:
                 edited, indexes = self.converter.convert(self.original.toPlainText(),
                                                          self.get_list_of_groups_with_tags_and_rules(),
-                                                         self.outputArea.get_list_of_groups())
+                                                         self.outputArea.get_dict_of_group_outputs())
                 self.edited.setPlainText(edited)
                 TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
                 if self.copyPasted.isChecked():
