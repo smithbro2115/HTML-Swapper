@@ -123,6 +123,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.editRuleButton.clicked.connect(self.rulesList.edit_rule_button_clicked)
         self.removeGroupButton.clicked.connect(self.rulesList.remove_item_from_list_widget)
         self.addGroupButton.clicked.connect(self.add_group_to_all_lists)
+        self.convertCheckBox.stateChanged.connect(self.convert_local)
         self.rulesList.local_signals.changed_rules.connect(self.send_rules_to_outputs)
         self.add_group_to_all_lists()
 
@@ -141,20 +142,23 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         scroll_to_track.verticalScrollBar().setValue(event)
 
     def convert_local(self):
-        edited, indexes = self.converter.convert(self.original.toPlainText(),
-                                                 self.get_list_of_groups_with_tags_and_rules())
-        self.edited.setPlainText(edited)
-        TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
-        if self.copyPasted.isChecked():
-            self.copy_edited()
-        if self.deleteAfterCopied.isChecked() and self.deleteAfterCopied.isEnabled():
-            self.original.clear()
+        if self.convertCheckBox.isChecked():
+            if self.outputArea.valid:
+                edited, indexes = self.converter.convert(self.original.toPlainText(),
+                                                         self.get_list_of_groups_with_tags_and_rules(),
+                                                         self.outputArea.get_list_of_groups())
+                self.edited.setPlainText(edited)
+                TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
+                if self.copyPasted.isChecked():
+                    self.copy_edited()
+                if self.deleteAfterCopied.isChecked() and self.deleteAfterCopied.isEnabled():
+                    self.original.clear()
 
     def get_list_of_groups_with_tags_and_rules(self):
         groups = []
         for group_item in self.rulesList.get_list_of_groups():
             g_int = group_item.id
-            group = [g_int, self.rulesList.get_list_of_rules_from_group(g_int)]
+            group = self.rulesList.get_list_of_rules_from_group(g_int)
             groups.append(group)
         return groups
 

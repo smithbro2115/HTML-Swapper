@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>923</width>
-    <height>549</height>
+    <height>548</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,48 +20,8 @@
     </property>
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="9" column="4">
-       <widget class="QLabel" name="copiedLabel">
-        <property name="enabled">
-         <bool>true</bool>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">color: rgba(0, 255, 0, 255);</string>
-        </property>
-        <property name="text">
-         <string>Copied</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-        <property name="margin">
-         <number>3</number>
-        </property>
-       </widget>
-      </item>
       <item row="7" column="4">
        <widget class="QTextEdit" name="edited"/>
-      </item>
-      <item row="8" column="2">
-       <widget class="QCheckBox" name="copyPasted">
-        <property name="text">
-         <string>Copy edited version after pasting original</string>
-        </property>
-       </widget>
-      </item>
-      <item row="9" column="2">
-       <widget class="QCheckBox" name="deleteAfterCopied">
-        <property name="text">
-         <string>Delete original version after copied</string>
-        </property>
-       </widget>
-      </item>
-      <item row="8" column="4">
-       <widget class="QPushButton" name="copyButton">
-        <property name="text">
-         <string>Copy</string>
-        </property>
-       </widget>
       </item>
       <item row="7" column="2">
        <widget class="QTextEdit" name="original"/>
@@ -91,6 +51,56 @@
         </property>
         <property name="text">
          <string>Edited</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="2">
+       <widget class="QCheckBox" name="deleteAfterCopied">
+        <property name="text">
+         <string>Delete original version after copied</string>
+        </property>
+       </widget>
+      </item>
+      <item row="9" column="2">
+       <widget class="QCheckBox" name="copyPasted">
+        <property name="text">
+         <string>Copy edited version after pasting original</string>
+        </property>
+       </widget>
+      </item>
+      <item row="10" column="4">
+       <widget class="QLabel" name="copiedLabel">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: rgba(0, 255, 0, 255);</string>
+        </property>
+        <property name="text">
+         <string>Copied</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+        </property>
+        <property name="margin">
+         <number>3</number>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="2">
+       <widget class="QCheckBox" name="convertCheckBox">
+        <property name="text">
+         <string>Convert</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="8" column="4">
+       <widget class="QPushButton" name="copyButton">
+        <property name="text">
+         <string>Copy</string>
         </property>
        </widget>
       </item>

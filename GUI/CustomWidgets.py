@@ -667,6 +667,13 @@ class OutputScrollArea(QtWidgets.QScrollArea):
         self.setWidgetResizable(True)
         self.setMinimumHeight(100)
 
+    @property
+    def valid(self):
+        for widget in self.get_list_of_groups():
+            if not widget.valid:
+                return False
+        return True
+
     def add_group(self):
         output_widget = OutputWidgetLocal(self.local_widget.layout().count() + 1, parent=self)
         output_widget.signals.button_pushed.connect(output_widget.open_dialog)
@@ -690,6 +697,11 @@ class OutputScrollArea(QtWidgets.QScrollArea):
                     item.rename(correct_id)
             except AttributeError:
                 pass
+
+    def get_group_widget_at_index(self, g_int):
+        for widget in self.get_list_of_groups():
+            if widget.id == g_int:
+                return widget
 
     def get_list_of_groups(self):
         groups = []
