@@ -70,7 +70,8 @@ class Output:
             self.saved_tag['Tag Type'] = tag.name
 
     def find_and_replace_values(self):
-        values = [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', self.expression)]
+        new_expression = self.expression
+        values = [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', new_expression)]
         for value in values:
             try:
                 new_value = self.saved_attributes[value]
@@ -79,5 +80,5 @@ class Output:
                     new_value = str(self.saved_contents[value][0])
                 except KeyError:
                     new_value = str(self.saved_tag[value])
-            self.expression = re.sub("[\[].*?[\]]", new_value, self.expression, 1)
-        return self.expression
+            new_expression = re.sub("[\[].*?[\]]", new_value, new_expression, 1)
+        return new_expression

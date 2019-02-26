@@ -1,5 +1,4 @@
 import bs4
-import re
 
 
 class Converter:
@@ -12,26 +11,30 @@ class Converter:
         self.rules = rules
         self.replaced = []
         self.soup = bs4.BeautifulSoup(s, 'html.parser')
-        matching_tags = self.get_matching_tags(self.rules, self.get_list_of_tags())
-        self.replace(self.get_dict_of_old_and_new_tags(matching_tags, outputs))
+        self.replace_matching_tags(self.rules, self.get_list_of_tags(), outputs)
         return str(self.soup)
 
     def get_dict_of_old_and_new_tags(self, tags, outputs):
         tag_dict = {}
         for k, v in tags.items():
-            print(k, v, '\n')
             for tag in v:
-                tag_dict[tag] = outputs[1].output.make_tag(tag)
+                print(k)
+                tag_dict[tag] = outputs[k].output.make_tag(tag)
+        return tag_dict
+
+    def get_dict_of_old_and_new_tag(self, tag_with_group, outputs):
+        tag_dict = {}
+        for group_id, tag in tag_with_group.items():
+                tag_dict[tag] = outputs[group_id].output.make_tag(tag)
         return tag_dict
 
     def get_list_of_tags(self):
         return self.soup.find_all()
 
-    def get_matching_tags(self, rules, tags):
-        groups = {}
+    def replace_matching_tags(self, rules, tags, outputs):
         for tag in tags:
-            groups = self.merge_dicts(groups, self.test_if_tag_matches_any_rules(rules, tag))
-        return groups
+            old_new = self.get_dict_of_old_and_new_tag(self.test_if_tag_matches_any_rules(rules, tag), outputs)
+            self.replace(old_new)
 
     @staticmethod
     def merge_dicts(dict_1, dict_2):
@@ -48,10 +51,7 @@ class Converter:
         tag_list_with_group_ids = {}
         for group, g_int in zip(rules, range(len(rules))):
             if self.test_if_tag_matches_group(group, tag):
-                try:
-                    tag_list_with_group_ids[g_int + 1].append(tag)
-                except KeyError:
-                    tag_list_with_group_ids[g_int + 1] = [tag]
+                tag_list_with_group_ids[g_int + 1] = tag
         return tag_list_with_group_ids
 
     def test_if_tag_matches_group(self, group, tag):
@@ -66,39 +66,11 @@ class Converter:
                 return False
         return True
 
-    def find_all_from_contents(self, content, sources):
-        results = {}
-        for s in sources:
-            if content in s.contents[0]:
-                results[s] = s.contents[0]
-        return results
-
     def replace(self, old_new_dict):
         for k, v in old_new_dict.items():
             new_tag = v
-            k.replaceWith(new_tag)
-
-    def replace_embed_frame_with_link(self, frames):
-        for frame in frames:
-            original_href = frame['src']
-            href = 'https://www.youtube.com/watch?v=' + original_href[original_href.rfind('/') + 1:]
-            print(href)
-            new_tag = self.soup.new_tag('a')
-            new_tag.string = href
-            new_tag['href'] = href
-            frame.replaceWith(new_tag)
-            self.replaced.append(href)
-            print('replaced: ' + str(new_tag))
-
-    def find_indexes_of_new_tags(self, html):
-        indexes = []
-        for t in self.replaced:
-            re_search = re.finditer(str(t), html)
-            temp = []
-            for m in re_search:
-                temp.append((m.start(), m.end()))
-            indexes.append(temp[1])
-        return indexes
+            string_soup = str(self.soup).replace(str(k), str(new_tag))
+            self.soup = bs4.BeautifulSoup(string_soup, 'html.parser')
 
 
 def make_html_file(text):

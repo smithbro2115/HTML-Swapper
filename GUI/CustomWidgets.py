@@ -118,7 +118,7 @@ class OutputDialogLocal(QtWidgets.QDialog):
     def make_a_list_buttons_for_all_rules(self, rules):
         buttons = []
         for rule in rules:
-            buttons.append(self.make_button_of_rule(rule))
+            buttons = buttons + self.make_buttons_of_rule(rule)
         return buttons
 
     def take_out_all_false_rules(self):
@@ -136,14 +136,17 @@ class OutputDialogLocal(QtWidgets.QDialog):
         e = o[:index] + button.text() + o[index:]
         self.ui.lineEdit.setText(e)
 
-    def make_button_of_rule(self, rule):
-        size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
-        button = OutputRuleButton()
-        button.rule = rule
-        button.setText("[" + rule.values_saved[0] + "]")
-        button.setSizePolicy(size_policy)
-        button.clicked.connect(lambda: self.rule_button_clicked(button))
-        return button
+    def make_buttons_of_rule(self, rule):
+        buttons = []
+        for value_saved in rule.values_saved:
+            size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
+            button = OutputRuleButton()
+            button.rule = rule
+            button.setText("[" + value_saved + "]")
+            button.setSizePolicy(size_policy)
+            button.clicked.connect(lambda: self.rule_button_clicked(button))
+            buttons.append(button)
+        return buttons
 
     def issubset_of_available_rules(self, rules):
         for rule in rules:
