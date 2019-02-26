@@ -123,6 +123,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.editRuleButton.clicked.connect(self.rulesList.edit_rule_button_clicked)
         self.removeGroupButton.clicked.connect(self.rulesList.remove_item_from_list_widget)
         self.addGroupButton.clicked.connect(self.add_group_to_all_lists)
+        self.outputArea.signals.changed.connect(self.convert_local)
         self.convertCheckBox.stateChanged.connect(self.convert_local)
         self.rulesList.local_signals.changed_rules.connect(self.send_rules_to_outputs)
         self.add_group_to_all_lists()
@@ -216,7 +217,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.restoreGeometry(self.settings.value('geometry'))
             self.restoreState(self.settings.value('windowState', ''))
         except TypeError:
-            print('fail')
+            pass
 
     def closeEvent(self, event):
         self.settings.setValue('geometry', self.saveGeometry())

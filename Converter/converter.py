@@ -18,7 +18,6 @@ class Converter:
         tag_dict = {}
         for k, v in tags.items():
             for tag in v:
-                print(k)
                 tag_dict[tag] = outputs[k].output.make_tag(tag)
         return tag_dict
 

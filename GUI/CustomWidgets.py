@@ -24,6 +24,7 @@ class OutputDialogSigs(QtCore.QObject):
     accepted = pyqtSignal(list)
     button_pushed = pyqtSignal(str)
     valid = pyqtSignal(bool)
+    widget_accepted = pyqtSignal()
 
 
 class OutputRuleButton(QtWidgets.QPushButton):
@@ -212,6 +213,7 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.set_label(message[0])
         self.used_rules = message[1]
         self.make_output(message[0])
+        self.signals.widget_accepted.emit()
 
     def set_label(self, text):
         self.ui.replaceWithLabel.setText(text)
@@ -236,7 +238,6 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.dialog.open_window(self.rules)
 
     def rules_changed(self, rules):
-        print(rules)
         self.rules = rules
         self.dialog.setup(rules)
         self.dialog.validate_format()
@@ -328,7 +329,6 @@ class RuleDialogLocal(QtWidgets.QDialog):
     @staticmethod
     def determine_if_true_or_false_should_be_shown(rule_type):
         name = rule_type.__name__
-        print(name)
         if not name.lower() == 'or':
             return True
         else:
@@ -652,6 +652,7 @@ class RulesListWidget(GroupListWidget):
 class OutputScrollAreaSigs(QtCore.QObject):
     # Needs Group ID
     output_button_clicked = pyqtSignal(int)
+    changed = pyqtSignal()
 
 
 class OutputScrollArea(QtWidgets.QScrollArea):
@@ -680,6 +681,7 @@ class OutputScrollArea(QtWidgets.QScrollArea):
     def add_group(self):
         output_widget = OutputWidgetLocal(self.local_widget.layout().count() + 1, parent=self)
         output_widget.signals.button_pushed.connect(output_widget.open_dialog)
+        output_widget.signals.widget_accepted.connect(lambda: self.signals.changed.emit())
         self.local_widget.layout().addWidget(output_widget)
 
     def remove_group_item(self, number):
@@ -725,6 +727,7 @@ class OutputScrollArea(QtWidgets.QScrollArea):
             for output in self.get_list_of_groups():
                 if output.id == group_id + 1:
                     output.rules_changed(group_list[group_id])
+        self.signals.changed.emit()
 
 
 def get_rule_names():
