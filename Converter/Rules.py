@@ -85,8 +85,13 @@ class HasAttributeThatIs(AttributeRule):
 
     def meets_condition(self, tag: bs4.element.Tag):
         for k, v in tag.attrs.items():
-            for a in v:
-                return k == self.condition and a == self.attribute_value
+            if isinstance(v, list):
+                for a in v:
+                    if k == self.condition and a == self.attribute_value:
+                        return True
+            else:
+                if k == self.condition and v == self.attribute_value:
+                    return True
         return False
 
 

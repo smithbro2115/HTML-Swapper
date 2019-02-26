@@ -45,12 +45,33 @@ class Output:
     def get_all_attributes(self, tag: Tag):
         unsorted_attributes = tag.attrs
         if self.all_attributes:
+            print(unsorted_attributes)
             return unsorted_attributes
         attributes = {}
         for k, v in unsorted_attributes.items():
             if k in self.kwargs['attributes']:
                 attributes[k] = v
         return attributes
+
+    def add_all_attributes(self):
+        s = ''
+        for k, v in self.saved_attributes.items():
+            if isinstance(v, list):
+                values = ''
+                for value in v:
+                    values = f'{value} '
+                s = f'{s} {k}="{values}"'
+            else:
+                s = f'{s} {k}="{v}"'
+        return s
+
+    def add_attribute(self, value):
+        if isinstance(self.saved_attributes[value], list):
+            s = ''
+            for a in self.saved_attributes[value]:
+                s = f'{s} {a}'
+        else:
+            return self.saved_attributes[value]
 
     def get_all_contents(self, tag: Tag):
         unsorted_contents = tag.contents
@@ -74,11 +95,16 @@ class Output:
         values = [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', new_expression)]
         for value in values:
             try:
-                new_value = self.saved_attributes[value]
+                if value == 'Attributes':
+                    print(self.add_all_attributes())
+                    new_value = self.add_all_attributes()
+                else:
+                    new_value = self.add_attribute(value)
             except KeyError:
                 try:
                     new_value = str(self.saved_contents[value][0])
                 except KeyError:
                     new_value = str(self.saved_tag[value])
             new_expression = re.sub("[\[].*?[\]]", new_value, new_expression, 1)
+            print(new_expression)
         return new_expression
