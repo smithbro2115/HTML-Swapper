@@ -19,6 +19,7 @@ class Converter:
     def get_dict_of_old_and_new_tags(self, tags, outputs):
         tag_dict = {}
         for k, v in tags.items():
+            print(k, v, '\n')
             for tag in v:
                 tag_dict[tag] = outputs[1].output.make_tag(tag)
         return tag_dict

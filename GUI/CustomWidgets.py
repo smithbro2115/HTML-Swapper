@@ -54,7 +54,7 @@ class OutputDialogLocal(QtWidgets.QDialog):
         self._valid = True
         self.used_rules = []
         self.valid = True
-        self.default_rules = [Rules.AllAttributes(), Rules.AllContents(), Rules.AllOfTag()]
+        self.default_rules = [Rules.AllAttributes(), Rules.AllContents(), Rules.AllOfTag(), Rules.TagType()]
 
     def accept(self):
         self.signals.accepted.emit([self.ui.lineEdit.text(), self.get_used_rules()])
@@ -185,7 +185,7 @@ class OutputWidgetLocal(QtWidgets.QWidget):
         self.ui.pushButton.setStyleSheet("background-color: #E1E1E1;")
         self.ui.groupLabel.setText('Group ' + str(number))
         self.rules = None
-        self.output = None
+        self.output = Output('', alls=None, attributes=None, contents=None)
         self.used_rules = []
         self.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         self.id = number

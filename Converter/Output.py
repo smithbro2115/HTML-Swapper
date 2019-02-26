@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup, Tag
-from Converter.Rules import AllOfTag, AllContents, AllAttributes
+from Converter.Rules import AllOfTag, AllContents, AllAttributes, TagType
 import re
 
 
@@ -8,11 +8,13 @@ class Output:
         self.expression = expression
         self.kwargs = kwargs
         self.saved_attributes = {}
-        self.saved_contents = []
-        self.saved_tag = ''
+        self.saved_contents = {}
+        self.saved_tag = {}
         self.all_attributes = False
         self.all_contents = False
         self.all_of_tag = False
+        self.tag_type = False
+        self.empty = False
         self.determine_all_rules()
 
     def determine_all_rules(self):
@@ -24,37 +26,48 @@ class Output:
                     self.all_attributes = True
                 elif isinstance(rule, AllContents):
                     self.all_contents = True
+                elif isinstance(rule, TagType):
+                    self.tag_type = True
         except IndexError:
             pass
+        except TypeError:
+            self.empty = True
 
     def make_tag(self, tag: Tag):
-        self.saved_attributes = self.get_all_attributes(tag)
-        print(self.saved_attributes)
-        self.saved_contents = self.get_all_contents(tag)
-        soup = BeautifulSoup(self.find_and_replace_values(), 'html.parser')
-        return soup
+        if not self.empty:
+            self.saved_attributes = self.get_all_attributes(tag)
+            self.saved_contents = self.get_all_contents(tag)
+            self.get_all_tag(tag)
+            soup = BeautifulSoup(self.find_and_replace_values(), 'html.parser')
+            return soup
+        return tag
 
     def get_all_attributes(self, tag: Tag):
         unsorted_attributes = tag.attrs
-        print(self.kwargs['attributes'])
         if self.all_attributes:
             return unsorted_attributes
         attributes = {}
         for k, v in unsorted_attributes.items():
             if k in self.kwargs['attributes']:
-                print(v)
                 attributes[k] = v
         return attributes
 
     def get_all_contents(self, tag: Tag):
         unsorted_contents = tag.contents
         if self.all_contents:
-            return unsorted_contents
-        contents = []
+            return {'Contents': unsorted_contents}
+        contents = {}
         for content in contents:
             if content in self.kwargs['contents']:
-                contents.append(content)
+                content_title = self.kwargs['condition'][self.kwargs['condition'].index(str(content))]
+                contents[content_title] = content
         return contents
+
+    def get_all_tag(self, tag: Tag):
+        if self.all_of_tag:
+            self.saved_tag['Full Tag'] = tag
+        if self.tag_type:
+            self.saved_tag['Tag Type'] = tag.name
 
     def find_and_replace_values(self):
         values = [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', self.expression)]
@@ -63,8 +76,8 @@ class Output:
                 new_value = self.saved_attributes[value]
             except KeyError:
                 try:
-                    new_value = ''.join(self.saved_contents)
+                    new_value = str(self.saved_contents[value][0])
                 except KeyError:
-                    new_value = self.saved_tag
+                    new_value = str(self.saved_tag[value])
             self.expression = re.sub("[\[].*?[\]]", new_value, self.expression, 1)
         return self.expression
