@@ -718,11 +718,10 @@ class OutputScrollArea(QtWidgets.QScrollArea):
         return g_dict
 
     def send_rules_to_outputs(self, group_list):
-        for group in group_list:
+        for group_id in range(len(group_list)):
             for output in self.get_list_of_groups():
-                print(output)
-                if output.id == group:
-                    output.rules_changed(group[1])
+                if output.id == group_id + 1:
+                    output.rules_changed(group_list[group_id])
 
 
 def get_rule_names():

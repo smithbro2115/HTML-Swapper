@@ -13,13 +13,15 @@ class Converter:
         self.replaced = []
         self.soup = bs4.BeautifulSoup(s, 'html.parser')
         matching_tags = self.get_matching_tags(self.rules, self.get_list_of_tags())
-        print(self.get_dict_of_old_and_new_tags(matching_tags, outputs))
+        self.replace(self.get_dict_of_old_and_new_tags(matching_tags, outputs))
+        return str(self.soup)
 
     def get_dict_of_old_and_new_tags(self, tags, outputs):
         tag_dict = {}
-        for k, v in tags:
+        for k, v in tags.items():
             for tag in v:
-                tag_dict[tag] = outputs[k].output.make_tag(tag)
+                tag_dict[tag] = outputs[1].output.make_tag(tag)
+        return tag_dict
 
     def get_list_of_tags(self):
         return self.soup.find_all()
@@ -70,14 +72,10 @@ class Converter:
                 results[s] = s.contents[0]
         return results
 
-    def replace_embed_link_with_link(self, tags):
-        for k, v in tags.items():
-            new_tag = self.soup.new_tag('a')
-            new_tag.string = str(v)
-            new_tag['href'] = (str(v))
-            self.soup.find(text=str(v)).parent.replaceWith(new_tag)
-            self.replaced.append(v)
-            print('replaced: ' + str(new_tag))
+    def replace(self, old_new_dict):
+        for k, v in old_new_dict.items():
+            new_tag = v
+            k.replaceWith(new_tag)
 
     def replace_embed_frame_with_link(self, frames):
         for frame in frames:

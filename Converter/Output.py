@@ -29,17 +29,20 @@ class Output:
 
     def make_tag(self, tag: Tag):
         self.saved_attributes = self.get_all_attributes(tag)
+        print(self.saved_attributes)
         self.saved_contents = self.get_all_contents(tag)
         soup = BeautifulSoup(self.find_and_replace_values(), 'html.parser')
         return soup
 
     def get_all_attributes(self, tag: Tag):
         unsorted_attributes = tag.attrs
+        print(self.kwargs['attributes'])
         if self.all_attributes:
             return unsorted_attributes
         attributes = {}
         for k, v in unsorted_attributes.items():
             if k in self.kwargs['attributes']:
+                print(v)
                 attributes[k] = v
         return attributes
 

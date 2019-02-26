@@ -226,7 +226,8 @@ def separate_rules_into_sorted_lists(rules):
 def get_all_values_saved(rules):
     values_saved = []
     for rule in rules:
-        values_saved.append(rule.values_saved)
+        for value_saved in rule.values_saved:
+            values_saved.append(value_saved)
     return values_saved
 
 

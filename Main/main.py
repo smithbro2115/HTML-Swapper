@@ -144,11 +144,11 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
     def convert_local(self):
         if self.convertCheckBox.isChecked():
             if self.outputArea.valid:
-                edited, indexes = self.converter.convert(self.original.toPlainText(),
-                                                         self.get_list_of_groups_with_tags_and_rules(),
-                                                         self.outputArea.get_dict_of_group_outputs())
+                edited = self.converter.convert(self.original.toPlainText(),
+                                                self.get_list_of_groups_with_tags_and_rules(),
+                                                self.outputArea.get_dict_of_group_outputs())
                 self.edited.setPlainText(edited)
-                TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
+                # TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')
                 if self.copyPasted.isChecked():
                     self.copy_edited()
                 if self.deleteAfterCopied.isChecked() and self.deleteAfterCopied.isEnabled():
