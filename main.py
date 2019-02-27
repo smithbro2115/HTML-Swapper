@@ -240,10 +240,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
 if __name__ == "__main__":
     import sys
-    app = QtWidgets.QApplication(sys.argv)
-    ui = Gui()
-    MainWindow = MainWindow()
-    ui.setupUi(MainWindow)
-    ui.setup_ui_additional(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+    try:
+        app = QtWidgets.QApplication(sys.argv)
+        ui = Gui()
+        MainWindow = MainWindow()
+        ui.setupUi(MainWindow)
+        ui.setup_ui_additional(MainWindow)
+        MainWindow.show()
+    except SystemExit as e:
+        print('Error', e)
+        print('Press enter to exit (and fix the problem)')
+        input()
+    else:
+        sys.exit(app.exec_())
