@@ -682,7 +682,6 @@ class OutputScrollArea(QtWidgets.QScrollArea):
         output_widget = OutputWidgetLocal(self.local_widget.layout().count() + 1, parent=self)
         output_widget.signals.button_pushed.connect(output_widget.open_dialog)
         self.local_widget.layout().addWidget(output_widget)
-        print('added group')
         output_widget.signals.widget_accepted.connect(lambda: self.signals.changed.emit())
 
     def remove_group_item(self, number):

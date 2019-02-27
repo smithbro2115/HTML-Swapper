@@ -7,7 +7,6 @@ import pyperclip
 class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
     def __init__(self):
         super(Gui, self).__init__()
-        self.converter = converter.Converter()
         self.copied_label_animation = None
         self.fade_effect = None
         self.fade_animation = None
@@ -27,8 +26,10 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
                               'video', 'wbr']
         self.tag_to_replace_complete_model = QtCore.QStringListModel()
         self.tag_to_replace_completer = QtWidgets.QCompleter()
+        self.thread_pool = QtCore.QThreadPool()
         self.window = None
         self.add_rule_dialog = None
+        self.current_converter = None
 
     def setup_ui_additional(self, window):
         self.window = window
@@ -108,6 +109,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.addGroupButton.setText(_translate("MainWindow", "Add Group"))
         self.addRuleButton.setText(_translate("MainWindow", "Add"))
         self.edited.setReadOnly(True)
+        self.thread_pool.setMaxThreadCount(1)
         self.original.textChanged.connect(self.original_text_changed)
         self.original.verticalScrollBar().valueChanged.connect(lambda x: self.text_slider_change(x, self.edited))
         self.edited.verticalScrollBar().valueChanged.connect(lambda x: self.text_slider_change(x, self.original))
@@ -143,13 +145,18 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         scroll_to_track.verticalScrollBar().setValue(event)
 
     def convert_local(self):
-        print('trying to convert')
         if self.convertCheckBox.isChecked():
             if self.outputArea.valid:
-                edited = self.converter.convert(self.original.toPlainText(),
-                                                self.get_list_of_groups_with_tags_and_rules(),
-                                                self.outputArea.get_dict_of_group_outputs())
-                self.edited.setPlainText(edited)
+                try:
+                    if self.current_converter.running:
+                        self.current_converter.cancel = True
+                except AttributeError:
+                    pass
+                self.current_converter = converter.Converter(self.original.toPlainText(),
+                                                             self.get_list_of_groups_with_tags_and_rules(),
+                                                             self.outputArea.get_dict_of_group_outputs())
+                self.current_converter.signals.finished.connect(lambda x: self.edited.setPlainText(x))
+                self.thread_pool.start(self.current_converter)
                 # TextColor.change_color_of_list_of_ranges(indexes, self.edited, color='#20C520')6
                 if self.copyPasted.isChecked():
                     self.copy_edited()

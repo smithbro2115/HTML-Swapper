@@ -1,18 +1,31 @@
 import bs4
+from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
 
 
-class Converter:
-    def __init__(self):
-        self.soup = None
-        self.replaced = []
-        self.rules = []
+class ConverterSigs(QObject):
+    started = pyqtSignal()
+    finished = pyqtSignal(str)
 
-    def convert(self, s, rules, outputs):
-        self.rules = rules
-        self.replaced = []
+
+class Converter(QRunnable):
+    def __init__(self, s, rules, outputs):
+        super(Converter, self).__init__()
         self.soup = bs4.BeautifulSoup(s, 'html.parser')
-        self.replace_matching_tags(self.rules, self.get_list_of_tags(), outputs)
-        return str(self.soup)
+        self.replaced = []
+        self.rules = rules
+        self.outputs = outputs
+        self.running = False
+        self.cancel = False
+        self.signals = ConverterSigs()
+
+    @pyqtSlot()
+    def run(self):
+        self.running = True
+        self.signals.started.emit()
+        self.replace_matching_tags(self.rules, self.get_list_of_tags(), self.outputs)
+        if not self.cancel:
+            self.signals.finished.emit(str(self.soup))
+        self.running = False
 
     def get_dict_of_old_and_new_tags(self, tags, outputs):
         tag_dict = {}
@@ -32,6 +45,8 @@ class Converter:
 
     def replace_matching_tags(self, rules, tags, outputs):
         for tag in tags:
+            if self.cancel:
+                break
             old_new = self.get_dict_of_old_and_new_tag(self.test_if_tag_matches_any_rules(rules, tag), outputs)
             self.replace(old_new)
 
