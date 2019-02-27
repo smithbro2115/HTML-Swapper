@@ -6,6 +6,13 @@ from GUI import AddRuleDialog, OutputWidget, OutputDialog
 from inspect import signature
 from Converter.Output import Output
 
+
+# TODO fix output area gui issue when test is too long or window is too long
+# TODO fix rule scrolling gui issue (make text cut off if too long)
+# TODO when adding a rule make it be inserted where current selection is
+# TODO Make output widgets selectable
+
+
 html_tags = ['!DOCTYPE html', '!-- --', 'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
              'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button', 'canvas', 'caption',
              'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del', 'details', 'dfn',

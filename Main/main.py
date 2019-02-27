@@ -4,6 +4,11 @@ from Converter import converter
 import pyperclip
 
 
+# TODO Add progress bar or circle for converter
+# TODO Run stress tests
+# TODO Maybe add a text color change when modified
+
+
 class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
     def __init__(self):
         super(Gui, self).__init__()
