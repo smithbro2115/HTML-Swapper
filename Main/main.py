@@ -129,8 +129,8 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         self.add_group_to_all_lists()
 
     def add_group_to_all_lists(self):
-        self.rulesList.add_group()
         self.outputArea.add_group()
+        self.rulesList.add_group()
 
     def remove_group_from_all_lists(self, number):
         list_widgets = [self.rulesList, self.outputArea]
@@ -143,6 +143,7 @@ class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
         scroll_to_track.verticalScrollBar().setValue(event)
 
     def convert_local(self):
+        print('trying to convert')
         if self.convertCheckBox.isChecked():
             if self.outputArea.valid:
                 edited = self.converter.convert(self.original.toPlainText(),
