@@ -90,21 +90,26 @@ class Output:
         if self.tag_type:
             self.saved_tag['Tag Type'] = tag.name
 
+    def content(self, value):
+        try:
+            return str(self.saved_contents[value][0])
+        except IndexError:
+            return ''
+
     def find_and_replace_values(self):
         new_expression = self.expression
         values = [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', new_expression)]
         for value in values:
             try:
                 if value == 'Attributes':
-                    print(self.add_all_attributes())
                     new_value = self.add_all_attributes()
                 else:
                     new_value = self.add_attribute(value)
             except KeyError:
                 try:
-                    new_value = str(self.saved_contents[value][0])
+                    new_value = self.content(value)
                 except KeyError:
-                    new_value = str(self.saved_tag[value])
-            new_expression = re.sub("[\[].*?[\]]", new_value, new_expression, 1)
-            print(new_expression)
+                    new_value = self.saved_tag[value]
+            print(new_value, new_expression)
+            new_expression = re.sub(r"\[.*?\]", new_value, new_expression, 1)
         return new_expression
