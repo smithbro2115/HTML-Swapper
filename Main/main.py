@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from GUI import YoutubeEmbedToLinkGui, CustomWidgets, TextColor
+from GUI import GUI, CustomWidgets, TextColor
 from Converter import converter
 import pyperclip
 
@@ -9,7 +9,7 @@ import pyperclip
 # TODO Maybe add a text color change when modified
 
 
-class Gui(YoutubeEmbedToLinkGui.Ui_MainWindow):
+class Gui(GUI.Ui_MainWindow):
     def __init__(self):
         super(Gui, self).__init__()
         self.copied_label_animation = None

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Programming\HTML-Swapper\GUI\YoutubeEmbedToLinkGui.ui'
+# Form implementation generated from reading ui file 'D:\Programming\HTML-Swapper\GUI\GUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
