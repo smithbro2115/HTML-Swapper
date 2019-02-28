@@ -1,5 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from GUI import GUI, CustomWidgets, TextColor
+from GUI import GUI, CustomWidgets
 from Converter import converter
 import pyperclip
 

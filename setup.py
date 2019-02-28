@@ -7,7 +7,7 @@ setup(name='HTML-Swapper',
       author='smithbro',
       author_email='smithbro2115@gmail.com',
       license='Apache License 2.0',
-      packages=['html_swapper'],
+      packages=['HTML-Swapper'],
       install_requires=[
           'BeautifulSoup4', 'PyQt5',
       ],
