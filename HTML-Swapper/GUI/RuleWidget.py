@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'D:\Programming\html_swapper\RuleWidget.ui'
+# Form implementation generated from reading ui file 'D:\Programming\HTML-Swapper\RuleWidget.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
