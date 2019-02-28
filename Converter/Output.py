@@ -110,6 +110,5 @@ class Output:
                     new_value = self.content(value)
                 except KeyError:
                     new_value = self.saved_tag[value]
-            print(new_value, new_expression)
-            new_expression = re.sub(r"\[.*?\]", new_value, new_expression, 1)
+            new_expression = re.sub(r"(\[.*?\])", re.escape(new_value), new_expression, 1)
         return new_expression
