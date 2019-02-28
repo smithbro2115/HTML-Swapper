@@ -1,13 +1,13 @@
 from setuptools import setup
 
-setup(name='HTML-Swapper',
+setup(name='html_swapper',
       version='0.1',
       description='Swap HTML tags',
-      url='https://github.com/smithbro2115/HTML-Swapper',
+      url='https://github.com/smithbro2115/html_swapper',
       author='smithbro',
       author_email='smithbro2115@gmail.com',
       license='Apache License 2.0',
-      packages=['HTML-Swapper'],
+      packages=['html_swapper'],
       install_requires=[
           'BeautifulSoup4', 'PyQt5',
       ],

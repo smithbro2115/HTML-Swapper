@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\Josh\PycharmProjects\HTML-Swapper\GUI\OutputDialog.ui'
+# Form implementation generated from reading ui file 'C:\Users\Josh\PycharmProjects\html_swapper\GUI\OutputDialog.ui'
 #
 # Created by: PyQt5 UI code generator 5.11.3
 #
