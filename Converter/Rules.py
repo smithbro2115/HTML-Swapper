@@ -1,6 +1,5 @@
 # noinspection PyUnusedLocal,PyMethodMayBeStatic
 import bs4
-import re
 
 
 class Rule:
