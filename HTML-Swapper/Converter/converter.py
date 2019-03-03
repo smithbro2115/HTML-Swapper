@@ -2,6 +2,9 @@ import bs4
 from PyQt5.QtCore import QRunnable, pyqtSlot, pyqtSignal, QObject
 
 
+# TODO I think I need to do the tags by group instead of by tag so that I can do multiple operations without it
+#  overwriting
+
 class ConverterSigs(QObject):
     started = pyqtSignal()
     finished = pyqtSignal(str)
