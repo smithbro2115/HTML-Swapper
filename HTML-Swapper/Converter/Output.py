@@ -17,6 +17,10 @@ class Output:
         self.empty = False
         self.determine_all_rules()
 
+    @property
+    def values(self):
+        return [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', self.expression)]
+
     def determine_all_rules(self):
         try:
             for rule in self.kwargs['alls']:
@@ -98,8 +102,7 @@ class Output:
 
     def find_and_replace_values(self):
         new_expression = self.expression
-        values = [value.replace('[', '').replace(']', '') for value in re.findall('\[.*?\]', new_expression)]
-        for value in values:
+        for value in self.values:
             try:
                 if value == 'Attributes':
                     new_value = self.add_all_attributes()
@@ -110,5 +113,5 @@ class Output:
                     new_value = self.content(value)
                 except KeyError:
                     new_value = self.saved_tag[value]
-            new_expression = re.sub(r"(\[.*?\])", re.escape(new_value), new_expression, 1)
+            new_expression = re.sub("\[.*?\]", new_value.replace('\\', '\\\\'), new_expression, 1)
         return new_expression
